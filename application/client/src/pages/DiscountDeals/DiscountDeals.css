@@ -1,0 +1,15 @@
+.discounts-deals {
+    padding: 20px;
+  }
+  
+  .deals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .deal-item {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }

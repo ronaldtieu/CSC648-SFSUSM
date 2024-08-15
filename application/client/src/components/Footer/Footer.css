@@ -1,0 +1,12 @@
+/* /*
+For some reason the color would not change without the important. 
+Possibly something is conflicting, but not sure where? 
+Checked header and home, but have not found the root problem.
+*/
+
+.footer {
+  background: #4A217B !important; /* SFSU Purple */
+  color: #FCCB06 !important;
+  padding: 20px !important;
+  text-align: center !important;
+} 
