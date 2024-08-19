@@ -12,6 +12,22 @@ const Header = ({ notifications, messages }) => {
   const notificationsRef = useRef(null);
   const history = useHistory(); // For redirecting after logout
 
+  // Hardcoded mock messages
+  const mockMessages = [
+    'Message 1', 'Message 2', 'Message 3', 'Message 4', 'Message 5',
+    'Message 6', 'Message 7', 'Message 8', 'Message 9', 'Message 10'
+  ];
+
+  // Hardcoded mock notifications
+  const mockNotifications = [
+    'Notification 1', 'Notification 2', 'Notification 3', 'Notification 4', 'Notification 5',
+    'Notification 6', 'Notification 7', 'Notification 8', 'Notification 9', 'Notification 10'
+  ];
+
+  // Use the mock data if the props are undefined or empty
+  const displayMessages = messages && messages.length > 0 ? messages : mockMessages;
+  const displayNotifications = notifications && notifications.length > 0 ? notifications : mockNotifications;
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -74,7 +90,7 @@ const Header = ({ notifications, messages }) => {
     } catch (error) {
         console.error('Error logging out:', error);
     }
-};
+  };
 
   return (
     <div>
@@ -98,7 +114,7 @@ const Header = ({ notifications, messages }) => {
               {dropdownOpen === 'messages' && (
                 <div className="dropdown" ref={messagesRef}>
                   <ul>
-                    {messages.map((message, index) => (
+                    {displayMessages.map((message, index) => (
                       <li key={index}>{message}</li>
                     ))}
                   </ul>
@@ -112,7 +128,7 @@ const Header = ({ notifications, messages }) => {
               {dropdownOpen === 'notifications' && (
                 <div className="dropdown" ref={notificationsRef}>
                   <ul>
-                    {notifications.map((notification, index) => (
+                    {displayNotifications.map((notification, index) => (
                       <li key={index}>{notification}</li>
                     ))}
                   </ul>
@@ -140,7 +156,7 @@ const Header = ({ notifications, messages }) => {
           <li><Link to="/discounts-deals" onClick={closeSidebar}>Student Discounts & Deals</Link></li>
           <li><Link to="/club-announcements" onClick={closeSidebar}>Club Announcements</Link></li>
           <li><Link to="/settings" onClick={closeSidebar}>Settings</Link></li>
-          <li><a href="/" onClick={handleLogout}>Logout</a></li> {}
+          <li><a href="/" onClick={handleLogout}>Logout</a></li>
         </ul>
       </div>
       <div className={`main-content ${sidebarOpen ? 'shift' : ''}`}>
