@@ -92,7 +92,6 @@ exports.loginUser = async (req, res, next) => {
     }
 };
 
-
 // Logout user and destroy session
 exports.logoutUser = (req, res, next) => {
     req.session.destroy(err => {
@@ -103,4 +102,33 @@ exports.logoutUser = (req, res, next) => {
         res.clearCookie('connect.sid'); // Clears the session cookie
         res.json({ success: true, message: 'Logout successful' });
     });
+};
+
+
+// Editing Profile
+exports.editUserProfile = async (req, res) => {
+    const { firstName, lastName, email, major, minor, pronouns } = req.body;
+    const { userId } = req.session; // Assuming user ID is stored in session
+
+    try {
+        const query = `
+            UPDATE Users 
+            SET FirstName = COALESCE(?, FirstName),
+                LastName = COALESCE(?, LastName),
+                Email = COALESCE(?, Email),
+                Major = COALESCE(?, Major),
+                Minor = COALESCE(?, Minor),
+                Pronouns = COALESCE(?, Pronouns)
+            WHERE ID = ?
+        `;
+
+        db.query(query, [firstName, lastName, email, major, minor, pronouns, userId], (err, result) => {
+            if (err) {
+                return res.json({ success: false, message: 'Error updating profile' });
+            }
+            res.json({ success: true, message: 'Profile updated successfully' });
+        });
+    } catch (err) {
+        res.json({ success: false, message: 'Server error while updating profile' });
+    }
 };

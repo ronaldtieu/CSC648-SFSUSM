@@ -1,7 +1,9 @@
+// Profile.js
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import gatorDefaultPic from '../../assets/gator_default_pic.png'; // Path to the default profile picture
 import './Profile.css';
+import DominoLoader from '../DominoLoader/DominoLoader';
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
@@ -13,11 +15,11 @@ const Profile = () => {
       firstName: 'Jane',
       lastName: 'Doe',
       email: 'jane.doe@example.com',
-      studentId: '12345678', // Add the student ID here
+      studentId: '12345678',
       major: 'Computer Science',
       minor: 'Mathematics',
       pronouns: 'She/Her',
-      profilePicture: gatorDefaultPic, // Use the default picture
+      profilePicture: gatorDefaultPic,
     };
 
     setTimeout(() => {
@@ -27,17 +29,7 @@ const Profile = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="domino-loader">
-          <div className="domino domino1"></div>
-          <div className="domino domino2"></div>
-          <div className="domino domino3"></div>
-          <div className="domino domino4"></div>
-          <div className="domino domino5"></div>
-        </div>
-      </div>
-    );
+    return <DominoLoader />; // Use the new DominoLoader component
   }
 
   const handleEditClick = () => {
@@ -58,7 +50,7 @@ const Profile = () => {
       <div className="profile-details">
         <p><strong>Name:</strong> {profile.firstName} {profile.lastName}</p>
         <p><strong>Email:</strong> {profile.email}</p>
-        <p><strong>Student ID:</strong> {profile.studentId}</p> {/* Add the student ID field */}
+        <p><strong>Student ID:</strong> {profile.studentId}</p>
         <p><strong>Major:</strong> {profile.major}</p>
         <p><strong>Minor:</strong> {profile.minor}</p>
         <p><strong>Pronouns:</strong> {profile.pronouns}</p>

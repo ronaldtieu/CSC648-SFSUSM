@@ -1,10 +1,12 @@
+/* Notification Dropdown Styling */
 .notification-dropdown {
   position: absolute;
-  top: 100%;
-  left: -150px; /* Adjust the left position to ensure it stays within the page */
+  top: 100%; /* Position directly below the button */
+  left: 50%; /* Start positioning from the center of the icon */
+  transform: translateX(-50%); /* Shift dropdown left by half its width to center it */
   background-color: white;
   color: #333;
-  width: 200px;
+  width: 200px; /* Set width of the dropdown */
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 1;
   border-radius: 4px;
@@ -13,7 +15,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
 }
 
 .notification-dropdown ul {
@@ -28,12 +30,7 @@
   padding: 12px 16px;
   cursor: pointer;
   box-sizing: border-box;
-  display: block; 
-}
-
-.notification-dropdown li:nth-child(1),
-.notification-dropdown li:nth-child(5) {
-  border-bottom: 1px solid #ddd;
+  display: block;
 }
 
 .notification-dropdown li:hover {
@@ -48,14 +45,9 @@
   width: 100%;
   text-align: center;
   border-top: 1px solid #ddd;
-  font-size: 24px; 
+  font-size: 24px;
 }
 
 .show-more-button:hover {
   background-color: #ddd;
-}
-
-.notification-container .dropdown {
-  right: 0;
-  max-width: 200px; 
 }
