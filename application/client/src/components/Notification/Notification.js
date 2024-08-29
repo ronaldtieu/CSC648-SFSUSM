@@ -1,27 +1,35 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
-import { FaEllipsisH } from 'react-icons/fa'; // Import the ellipsis icon
-import './Notification.css';
+import './Notification.css'; // Import the CSS file
 
-const Notification = ({ notifications, closeDropdown }) => {
+const Notification = ({ notifications = [], closeDropdown }) => {
   const history = useHistory();
 
-  const handleShowMore = () => {
-    closeDropdown();
-    history.push('/notifications');
-  };
+  // Mock notifications data
+  const mockNotifications = [
+    'Notification 1', 'Notification 2', 'Notification 3', 'Notification 4', 'Notification 5',
+    'Notification 6', 'Notification 7', 'Notification 8', 'Notification 9', 'Notification 10'
+  ];
+
+  // Use mock notifications if no notifications are provided
+  const displayNotifications = notifications.length > 0 ? notifications : mockNotifications;
 
   return (
-    <div className="notification-dropdown">
+    <div className="notification-dropdown"> {/* Updated class name */}
       <ul>
-        {notifications.slice(0, 5).map((notification, index) => (
-          <li key={index} className="notification-item">
-            {notification}
-          </li>
+        {displayNotifications.map((notification, index) => (
+          <li key={index}>{notification}</li>
         ))}
       </ul>
-      <button onClick={handleShowMore} className="show-more-button">
-        <FaEllipsisH style={{ color: 'black' }} /> {/* Use the ellipsis icon and set color to black */}
+      <button
+        className="show-more-button"
+        onClick={() => {
+          closeDropdown();
+          history.push('/notifications');
+        }}
+        title="Show More"
+      >
+        ...
       </button>
     </div>
   );

@@ -3,6 +3,8 @@ import { Link, useHistory } from 'react-router-dom';
 import { FaBars, FaComment, FaBell } from 'react-icons/fa'; // Importing the necessary icons
 import './Header.css';
 import profilePic from '../../assets/gator_default_pic.png';
+import Messages from '../Messages/Messages'; // Import the Messages component
+import Notification from '../Notification/Notification'; // Import the Notification component
 
 const Header = ({ notifications, messages }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -11,22 +13,6 @@ const Header = ({ notifications, messages }) => {
   const messagesRef = useRef(null);
   const notificationsRef = useRef(null);
   const history = useHistory(); // For redirecting after logout
-
-  // Hardcoded mock messages
-  const mockMessages = [
-    'Message 1', 'Message 2', 'Message 3', 'Message 4', 'Message 5',
-    'Message 6', 'Message 7', 'Message 8', 'Message 9', 'Message 10'
-  ];
-
-  // Hardcoded mock notifications
-  const mockNotifications = [
-    'Notification 1', 'Notification 2', 'Notification 3', 'Notification 4', 'Notification 5',
-    'Notification 6', 'Notification 7', 'Notification 8', 'Notification 9', 'Notification 10'
-  ];
-
-  // Use the mock data if the props are undefined or empty
-  const displayMessages = messages && messages.length > 0 ? messages : mockMessages;
-  const displayNotifications = notifications && notifications.length > 0 ? notifications : mockNotifications;
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -71,24 +57,24 @@ const Header = ({ notifications, messages }) => {
   const handleLogout = async (event) => {
     event.preventDefault(); // Prevent default link behavior
     try {
-        const response = await fetch('http://localhost:4000/api/users/logout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',  // Ensure cookies are included
-        });
+      const response = await fetch('http://localhost:4000/api/users/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',  // Ensure cookies are included
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (data.success) {
-            sessionStorage.clear(); // Clear the session storage
-            window.location.href = '/'; // Redirect to the login page by reloading the page
-        } else {
-            console.error('Logout failed:', data.message);
-        }
+      if (data.success) {
+        sessionStorage.clear(); // Clear the session storage
+        window.location.href = '/'; // Redirect to the login page by reloading the page
+      } else {
+        console.error('Logout failed:', data.message);
+      }
     } catch (error) {
-        console.error('Error logging out:', error);
+      console.error('Error logging out:', error);
     }
   };
 
@@ -100,39 +86,27 @@ const Header = ({ notifications, messages }) => {
           <ul>
             <li>
               <Link to="/" className="home-icon" title="Home">
-                <svg viewBox="0 0 64 64" width="32" height="32" fill="white">
+                <svg viewBox="0 0 64 64" width="32" height="32" fill="currentColor">
                   <path d="M32 2 L2 32 L12 32 L12 58 L26 58 L26 34 L38 34 L38 58 L52 58 L52 32 L62 32 Z" />
                 </svg>
               </Link>
             </li>
+            {/* Messages Dropdown */}
             <li className="messages-container" ref={messagesRef}>
-              <div className="messages-icon-container">
-                <button onClick={() => toggleDropdown('messages')} className="messages-button" title="Messages">
-                  <FaComment className="messages-icon" />
-                </button>
-              </div>
+              <button onClick={() => toggleDropdown('messages')} className="messages-button" title="Messages">
+                <FaComment className="messages-icon" />
+              </button>
               {dropdownOpen === 'messages' && (
-                <div className="dropdown" ref={messagesRef}>
-                  <ul>
-                    {displayMessages.map((message, index) => (
-                      <li key={index}>{message}</li>
-                    ))}
-                  </ul>
-                </div>
+                <Messages messages={messages} closeDropdown={closeDropdown} />
               )}
             </li>
+            {/* Notifications Dropdown */}
             <li className="notification-container" ref={notificationsRef}>
               <button onClick={() => toggleDropdown('notifications')} className="notification-button" title="Notifications">
                 <FaBell className="notifications-icon" />
               </button>
               {dropdownOpen === 'notifications' && (
-                <div className="dropdown" ref={notificationsRef}>
-                  <ul>
-                    {displayNotifications.map((notification, index) => (
-                      <li key={index}>{notification}</li>
-                    ))}
-                  </ul>
-                </div>
+                <Notification notifications={notifications} closeDropdown={closeDropdown} />
               )}
             </li>
             <li>

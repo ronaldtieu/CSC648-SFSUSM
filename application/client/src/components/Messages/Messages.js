@@ -1,27 +1,35 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
-import { FaEllipsisH } from 'react-icons/fa'; // Import the ellipsis icon
-import './Messages.css';
+import './Messages.css'; // Import the CSS file
 
-const Messages = ({ messages, closeDropdown }) => {
+const Messages = ({ messages = [], closeDropdown }) => {
   const history = useHistory();
 
-  const handleShowMore = () => {
-    closeDropdown();
-    history.push('/messages');
-  };
+  // Mock messages data
+  const mockMessages = [
+    'Message 1', 'Message 2', 'Message 3', 'Message 4', 'Message 5',
+    'Message 6', 'Message 7', 'Message 8', 'Message 9', 'Message 10'
+  ];
+
+  // Use mock messages if no messages are provided
+  const displayMessages = messages.length > 0 ? messages : mockMessages;
 
   return (
-    <div className="messages-dropdown">
+    <div className="messages-dropdown"> {/* Updated class name */}
       <ul>
-        {messages.slice(0, 5).map((message, index) => (
-          <li key={index} className="message-item">
-            {message}
-          </li>
+        {displayMessages.map((message, index) => (
+          <li key={index}>{message}</li>
         ))}
       </ul>
-      <button onClick={handleShowMore} className="show-more-button">
-        <FaEllipsisH style={{ color: 'black' }} /> {/* Setting the color of the ellipsis to black */}
+      <button
+        className="show-more-button"
+        onClick={() => {
+          closeDropdown();
+          history.push('/messages');
+        }}
+        title="Show More"
+      >
+        ...
       </button>
     </div>
   );
