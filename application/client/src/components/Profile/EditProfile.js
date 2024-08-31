@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import './EditProfile.css';
-import gatorDefaultPic from '../../assets/gator_default_pic.png'; // Path to the default profile picture
+import gatorDefaultPic from '../../assets/gator_default_pic.png';
+import { updateUserProfile } from '../../service/profileService'; // Import the update function from the service
 
 const EditProfile = () => {
   const [formData, setFormData] = useState({
     firstName: 'Jane',
     lastName: 'Doe',
     email: 'jane.doe@example.com',
-    studentId: '12345678', // Placeholder for the student ID
+    studentId: '12345678', 
     major: 'Computer Science',
     minor: 'Mathematics',
     pronouns: 'She/Her',
-    profilePicture: gatorDefaultPic, // Placeholder for the profile picture
+    profilePicture: gatorDefaultPic,
   });
 
   const handleChange = (e) => {
@@ -26,14 +27,21 @@ const EditProfile = () => {
     if (file) {
       setFormData({
         ...formData,
-        profilePicture: URL.createObjectURL(file), // Preview the selected image
+        profilePicture: URL.createObjectURL(file),
       });
     }
   };
 
-  const handleSave = () => {
-    // Implement save functionality here
-    alert('Profile updated!');
+  const handleSave = async () => {
+    try {
+      const token = sessionStorage.getItem('accessToken'); // Get the JWT token from sessionStorage
+      await updateUserProfile(formData, token); // Call the service function to update the user profile
+      alert('Profile updated successfully!');
+      window.location.href = '/profile'; // Redirect to the profile page
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Failed to update profile: ' + error.message); // Display an error message
+    }
   };
 
   return (
@@ -52,7 +60,7 @@ const EditProfile = () => {
             accept="image/*" 
             id="profilePictureInput"
             className="profile-picture-input"
-            onChange={handlePictureChange} // This is where the error was happening
+            onChange={handlePictureChange}
           />
         </div>
       </div>
