@@ -30,11 +30,11 @@ exports.checkSession = (req, res) => {
             const user = results[0];
             res.json({
                 loggedIn: true,
-                userId: req.session.userId,
                 user: {
                     firstName: user.FirstName,
                     lastName: user.LastName,
                     email: user.Email,
+                    studentId: req.session.userId,  // Add studentId as userId
                     major: user.Major,
                     minor: user.Minor,
                     pronouns: user.Pronouns,

@@ -17,8 +17,8 @@ app.use(cors({
 
 app.use(sessionMiddleware);  // Use the session middleware
 
-// Use the user routes for all /api/users/* endpoints
-app.use('/api/users', userRoutes);
+// Use the user routes for all /users/* endpoints
+app.use('/users', userRoutes);
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

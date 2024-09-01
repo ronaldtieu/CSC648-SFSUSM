@@ -20,7 +20,7 @@ const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem('accessToken'));
 
   useEffect(() => {
-    fetch('/api/users/check-session', {
+    fetch('http://localhost:4000/users/check-session', {  // Updated route
       method: 'GET',
       credentials: 'include'
     })

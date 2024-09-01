@@ -1,18 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './EditProfile.css';
-import gatorDefaultPic from '../../assets/gator_default_pic.png'; // Path to the default profile picture
+import gatorDefaultPic from '../../assets/gator_default_pic.png';
+import { fetchUserProfile, updateUserProfile } from '../../service/profileService';
 
 const EditProfile = () => {
   const [formData, setFormData] = useState({
-    firstName: 'Jane',
-    lastName: 'Doe',
-    email: 'jane.doe@example.com',
-    studentId: '12345678', // Placeholder for the student ID
-    major: 'Computer Science',
-    minor: 'Mathematics',
-    pronouns: 'She/Her',
-    profilePicture: gatorDefaultPic, // Placeholder for the profile picture
+    firstName: '',
+    lastName: '',
+    email: '',
+    studentId: '',  // Added studentId to state
+    major: '',
+    minor: '',
+    pronouns: '',
+    profilePicture: gatorDefaultPic,
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        console.log('Loading user profile for editing...');
+        const userData = await fetchUserProfile();
+        setFormData({
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+          studentId: userData.studentId || '',  // Set the studentId
+          major: userData.major,
+          minor: userData.minor,
+          pronouns: userData.pronouns,
+          profilePicture: userData.profilePicture || gatorDefaultPic,
+        });
+        console.log('User profile loaded:', userData);
+      } catch (err) {
+        console.error('Error loading profile:', err.message);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserProfile();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -26,15 +56,30 @@ const EditProfile = () => {
     if (file) {
       setFormData({
         ...formData,
-        profilePicture: URL.createObjectURL(file), // Preview the selected image
+        profilePicture: URL.createObjectURL(file),
       });
     }
   };
 
-  const handleSave = () => {
-    // Implement save functionality here
-    alert('Profile updated!');
+  const handleSave = async () => {
+    try {
+      console.log('Saving profile changes...');
+      await updateUserProfile(formData);
+      alert('Profile updated successfully!');
+      window.location.href = '/profile';
+    } catch (error) {
+      console.error('Failed to update profile:', error.message);
+      alert('Failed to update profile: ' + error.message);
+    }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="edit-profile-container">
@@ -52,7 +97,7 @@ const EditProfile = () => {
             accept="image/*" 
             id="profilePictureInput"
             className="profile-picture-input"
-            onChange={handlePictureChange} // This is where the error was happening
+            onChange={handlePictureChange}
           />
         </div>
       </div>
@@ -71,7 +116,7 @@ const EditProfile = () => {
         </div>
         <div>
           <label>Student ID:</label>
-          <input type="text" name="studentId" value={formData.studentId} readOnly className="readonly-input" />
+          <input type="text" name="studentId" value={formData.studentId} readOnly className="readonly-input" />  {/* Display Student ID */}
         </div>
         <div>
           <label>Major:</label>

@@ -9,7 +9,7 @@ const LandingPage = () => {
   const history = useHistory();
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/users/check-session', {
+    fetch('http://localhost:4000/users/check-session', {  // Updated route
       method: 'GET',
       credentials: 'include'  // Include cookies with the request
     })
@@ -31,7 +31,7 @@ const LandingPage = () => {
     event.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:4000/api/users/login', {  // Ensure the port matches your backend
+      const response = await fetch('http://localhost:4000/users/login', {  // Ensure the port matches your backend
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
