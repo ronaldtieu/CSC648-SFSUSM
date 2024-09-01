@@ -40,26 +40,34 @@ export const fetchUserProfile = async () => {
 
 // Function to update user profile
 export const updateUserProfile = async (profileData, token) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/edit-profile`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      credentials: 'include',
-      body: JSON.stringify(profileData),
-    });
-
-    const data = await response.json();
-
-    if (!data.success) {
-      throw new Error(data.message); // Handle error from the backend
+    try {
+      console.log('Attempting to update user profile at /edit-profile endpoint...');
+      
+      const response = await fetch(`${API_BASE_URL}/edit-profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify(profileData),
+      });
+  
+      // Check for response status
+      if (!response.ok) {
+        throw new Error(`Failed to update profile. Received HTTP status: ${response.status}. Please check the server or try again later.`);
+      }
+  
+      const data = await response.json();
+  
+      if (!data.success) {
+        throw new Error(`Update failed: ${data.message}`);
+      }
+  
+      console.log('Profile updated successfully:', data);
+      return data; // Return response data
+    } catch (error) {
+      console.error('An error occurred while updating the profile:', error.message);
+      throw error; // Re-throw error for handling in the calling function
     }
-
-    return data; // Return response data
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    throw error; // Re-throw error for handling in the calling function
-  }
-};
+  };

@@ -9,12 +9,13 @@ const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const history = useHistory(); 
+  const history = useHistory();
 
   useEffect(() => {
     const loadUserProfile = async () => {
       try {
         const userData = await fetchUserProfile();
+        console.log('Fetched user profile data:', userData);  // Debugging line
         setProfile(userData);
       } catch (err) {
         console.error('Error loading profile:', err);
@@ -35,9 +36,8 @@ const Profile = () => {
     return <p>Error loading profile: {error}</p>;  // Display an error message if there's any
   }
 
-  const handleEditClick = () => {
-    history.push('/edit-profile');
-  };
+  // Debugging: Check if the profile data contains userId
+  console.log('Profile data:', profile);
 
   return (
     <div className="profile-container">
@@ -47,14 +47,15 @@ const Profile = () => {
           <div className="profile-info">
             <img 
               src={profile.profilePicture || gatorDefaultPic} 
-              alt={`${profile.firstName} {profile.lastName}`} 
+              alt={`${profile.firstName} ${profile.lastName}`} 
               className="profile-picture"
             />
-            <button className="edit-button" onClick={handleEditClick}>Edit</button>
+            <button className="edit-button" onClick={() => history.push('/edit-profile')}>Edit</button>
           </div>
           <div className="profile-details">
             <p><strong>Name:</strong> {profile.firstName} {profile.lastName}</p>
             <p><strong>Email:</strong> {profile.email}</p>
+            <p><strong>Student ID:</strong> {profile.studentId || 'ID not found'}</p>  {/* Displaying student ID */}
             <p><strong>Major:</strong> {profile.major}</p>
             <p><strong>Minor:</strong> {profile.minor}</p>
             <p><strong>Pronouns:</strong> {profile.pronouns}</p>

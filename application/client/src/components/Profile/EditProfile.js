@@ -1,19 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './EditProfile.css';
 import gatorDefaultPic from '../../assets/gator_default_pic.png';
-import { updateUserProfile } from '../../service/profileService'; // Import the update function from the service
+import { fetchUserProfile, updateUserProfile } from '../../service/profileService';
 
 const EditProfile = () => {
   const [formData, setFormData] = useState({
-    firstName: 'Jane',
-    lastName: 'Doe',
-    email: 'jane.doe@example.com',
-    studentId: '12345678', 
-    major: 'Computer Science',
-    minor: 'Mathematics',
-    pronouns: 'She/Her',
+    firstName: '',
+    lastName: '',
+    email: '',
+    studentId: '',  // Added studentId to state
+    major: '',
+    minor: '',
+    pronouns: '',
     profilePicture: gatorDefaultPic,
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        console.log('Loading user profile for editing...');
+        const userData = await fetchUserProfile();
+        setFormData({
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+          studentId: userData.studentId || '',  // Set the studentId
+          major: userData.major,
+          minor: userData.minor,
+          pronouns: userData.pronouns,
+          profilePicture: userData.profilePicture || gatorDefaultPic,
+        });
+        console.log('User profile loaded:', userData);
+      } catch (err) {
+        console.error('Error loading profile:', err.message);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserProfile();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -34,15 +63,23 @@ const EditProfile = () => {
 
   const handleSave = async () => {
     try {
-      const token = sessionStorage.getItem('accessToken'); // Get the JWT token from sessionStorage
-      await updateUserProfile(formData, token); // Call the service function to update the user profile
+      console.log('Saving profile changes...');
+      await updateUserProfile(formData);
       alert('Profile updated successfully!');
-      window.location.href = '/profile'; // Redirect to the profile page
+      window.location.href = '/profile';
     } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('Failed to update profile: ' + error.message); // Display an error message
+      console.error('Failed to update profile:', error.message);
+      alert('Failed to update profile: ' + error.message);
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="edit-profile-container">
@@ -79,7 +116,7 @@ const EditProfile = () => {
         </div>
         <div>
           <label>Student ID:</label>
-          <input type="text" name="studentId" value={formData.studentId} readOnly className="readonly-input" />
+          <input type="text" name="studentId" value={formData.studentId} readOnly className="readonly-input" />  {/* Display Student ID */}
         </div>
         <div>
           <label>Major:</label>
