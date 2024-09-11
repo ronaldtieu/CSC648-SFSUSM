@@ -14,7 +14,25 @@ router.post('/login', userController.loginUser);
 router.post('/logout', userController.verifyToken, userController.logoutUser);
 
 // Route to check user session status
-router.get('/check-session', session.checkAuth); // Changed to checkAuth for JWT
+router.get('/check-session', userController.verifyToken, (req, res) => {
+    if (req.sessionStatus) {
+        return res.json(req.sessionStatus);
+    }
+    return res.json({
+        success: false,
+        message: 'Unknown error in session checking.',
+    });
+});
+
+// Get user info
+router.get('/userInfo', userController.verifyToken, userController.getUserInfo, (req, res) => {
+    // Now you have access to req.user, which contains the user information
+    res.json({
+        success: true,
+        message: 'User profile retrieved successfully',
+        user: req.user
+    });
+});
 
 // Route to edit user profile
 router.put(
@@ -27,5 +45,14 @@ router.put(
 router.delete('/clear-blacklist', userController.clearBlacklist);
 
 router.get('/getBlackList', userController.getAllBlacklistedTokens);
+
+// to show all the cookies to troubleshoot login
+router.get('/getCookies', userController.showCookies);
+
+// clearing all cookies that currently exist
+router.get('/clearCookies', userController.clearCookies);
+
+
+
 
 module.exports = router;

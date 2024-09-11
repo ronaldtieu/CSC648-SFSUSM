@@ -49,9 +49,26 @@ exports.loginUser = async (req, res) => {
     const { emailOrId, password } = req.body;
 
     try {
-        const query = `
-            SELECT * FROM Users WHERE Email = ? OR ID = ?
-        `;
+        // Check if there's already a valid session (token) in the cookies
+        const existingToken = req.cookies.token;
+        if (existingToken) {
+            try {
+                const decoded = jwt.verify(existingToken, process.env.JWT_SECRET);
+                // If the token is valid, prevent a new login
+                return res.json({
+                    success: false,
+                    message: 'You are already logged in. Please log out before logging in with another account.',
+                    token: existingToken, // Optionally return the existing token
+                    user: decoded // Optionally return the decoded token info
+                });
+            } catch (err) {
+                // If the token is invalid (expired or tampered), allow login to proceed
+                console.log('Existing token is invalid, proceeding with login.');
+            }
+        }
+
+        // Proceed with login logic if no existing valid session
+        const query = `SELECT * FROM Users WHERE Email = ? OR ID = ?`;
 
         db.query(query, [emailOrId, emailOrId], async (err, results) => {
             if (err) {
@@ -78,13 +95,6 @@ exports.loginUser = async (req, res) => {
                 });
             }
 
-            if (!process.env.JWT_SECRET) {
-                return res.json({
-                    success: false,
-                    message: 'JWT_SECRET is not set. Please contact the system administrator.',
-                });
-            }
-
             const expiresIn = '2h'; // Token expiration time
             const token = jwt.sign(
                 {
@@ -96,21 +106,21 @@ exports.loginUser = async (req, res) => {
                 { expiresIn }
             );
 
-            // Calculate the expiration date and time
-            const expirationTime = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours from now
-            const expirationDate = expirationTime.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+            // Set the token as an HTTP-only cookie
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production', // Set to true in production
+                maxAge: 2 * 60 * 60 * 1000 // 2 hours
+            });
 
-            console.log('Generated Token:', token); // Log the generated token
-
-            res.json({
+            return res.json({
                 success: true,
                 message: 'Login successful! Welcome back!',
-                token,
-                expiresAt: expirationDate
+                token, // Optionally return the token as well
             });
         });
     } catch (err) {
-        res.json({
+        return res.json({
             success: false,
             message: 'An error occurred during login. Please try again.',
         });
@@ -119,48 +129,83 @@ exports.loginUser = async (req, res) => {
 
 // User Logout
 exports.logoutUser = (req, res) => {
-    const token = req.headers['authorization'];
+    const token = req.cookies.token; // Get the token from the cookies
 
-    // The token should have already been verified by the verifyToken middleware
-    const decoded = req.decodedToken; // Assume verifyToken middleware sets req.decodedToken
-
-    if (decoded) {
-        const tokenID = decoded.jti; // Use the jti (JWT id) from the decoded token
-        const expirationTime = new Date(decoded.exp * 1000); // Convert exp to milliseconds
-
-        const query = `
-            INSERT INTO TokenBlacklist (TokenID, UserID, ExpirationTime)
-            VALUES (?, ?, ?)
-        `;
-
-        db.query(query, [tokenID, decoded.id, expirationTime], (err, result) => {
-            if (err) {
-                console.error('Database Error:', err); // Log the database error for debugging
-                return res.json({
-                    success: false,
-                    message: 'An error occurred while trying to log you out. Please try again later.',
-                });
-            }
-
-            res.json({
-                success: true,
-                message: 'You have been logged out successfully!',
-            });
-        });
-    } else {
-        // This block will be reached if, for some reason, req.decodedToken is not set
-        console.error('Token verification failed. Decoded token is missing.');
-        res.json({
+    if (!token) {
+        return res.json({
             success: false,
-            message: 'Your session could not be verified. Please log in again.',
+            message: 'No active session found. Please log in first.',
         });
     }
+
+    // Invalidate the token by clearing the cookie
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+    });
+
+    return res.json({
+        success: true,
+        message: 'You have been logged out successfully!',
+    });
 };
 
 
-// Verify Token Middleware
+// Verify Token Middleware from Cookies
 exports.verifyToken = (req, res, next) => {
-    let token = req.headers['authorization'];
+    // Extract the token from the cookies 
+    let token = req.cookies.token;
+
+    if (!token) {
+        req.sessionStatus = {
+            success: false,
+            message: 'No token provided. Please log in.',
+        };
+        return next();
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            req.sessionStatus = {
+                success: false,
+                message: 'Your session has expired or is invalid. Please log in again.',
+            };
+            return next();
+        }
+
+        const query = `SELECT * FROM TokenBlacklist WHERE TokenID = ?`;
+        db.query(query, [decoded.jti], (err, results) => {
+            if (err) {
+                req.sessionStatus = {
+                    success: false,
+                    message: 'An error occurred while verifying your session. Please try again later.',
+                };
+                return next();
+            }
+
+            if (results.length > 0) {
+                req.sessionStatus = {
+                    success: false,
+                    message: 'Your session has expired or is invalid. Please log in again.',
+                };
+                return next();
+            }
+
+            req.userId = decoded.id; // Attach userId to the request object
+            req.decodedToken = decoded; // Attach decoded token to the request object
+            req.sessionStatus = {
+                success: true,
+                message: 'Session is active.',
+                user: decoded,
+            };
+            next();
+        });
+    });
+};
+
+// Get user information
+exports.getUserInfo = (req, res, next) => {
+    const token = req.cookies.token;
 
     if (!token) {
         return res.json({
@@ -169,55 +214,58 @@ exports.verifyToken = (req, res, next) => {
         });
     }
 
-    if (token.startsWith('Bearer ')) {
-        token = token.slice(7, token.length).trimLeft();
-    }
-
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
             return res.json({
                 success: false,
-                message: 'Your session has expired or is invalid. Please log in again.',
+                message: 'Invalid or expired token. Please log in again.',
             });
         }
 
-        const query = `SELECT * FROM TokenBlacklist WHERE TokenID = ?`;
-        db.query(query, [decoded.jti], (err, results) => {
+        const query = `SELECT * FROM Users WHERE ID = ?`;
+
+        db.query(query, [decoded.id], (err, results) => {
             if (err) {
                 return res.json({
                     success: false,
-                    message: 'An error occurred while verifying your session. Please try again later.',
+                    message: 'Failed to retrieve user information.',
                 });
             }
 
-            if (results.length > 0) {
+            if (results.length === 0) {
                 return res.json({
                     success: false,
-                    message: 'Your session has expired or is invalid. Please log in again.',
+                    message: 'No user found with the provided ID.',
                 });
             }
 
-            req.userId = decoded.id;
-            req.decodedToken = decoded; // Set the decoded token here
-            next();
+            req.user = results[0]; // Attach the user information to the request object
+            next(); // Continue to the next middleware or route handler
         });
     });
 };
 
 // Edit user profile
 exports.editUserProfile = async (req, res) => {
-    const userId = req.userId; // The userId is already set by the verifyToken middleware
+    const userId = req.userId; // The userId should be set by the verifyToken middleware
     const { firstName, lastName, email, major, minor, pronouns } = req.body;
 
     try {
-        const query = `
-            UPDATE Users 
-            SET FirstName = ?, LastName = ?, Email = ?, Major = ?, Minor = ?, Pronouns = ? 
-            WHERE ID = ?
-        `;
+        // Build the SQL query dynamically based on provided fields
+        let query = `UPDATE Users SET FirstName = ?, LastName = ?, Major = ?, Minor = ?, Pronouns = ?`;
+        const queryParams = [firstName, lastName, major, minor, pronouns];
 
-        db.query(query, [firstName, lastName, email, major, minor, pronouns, userId], (err, result) => {
+        if (email) {
+            query += `, Email = ?`;
+            queryParams.push(email);
+        }
+
+        query += ` WHERE ID = ?`;
+        queryParams.push(userId);
+
+        db.query(query, queryParams, (err, result) => {
             if (err) {
+                console.error('SQL Error:', err);
                 return res.json({
                     success: false,
                     message: 'There was an error updating your profile. Please try again.',
@@ -230,6 +278,7 @@ exports.editUserProfile = async (req, res) => {
             });
         });
     } catch (err) {
+        console.error('Catch Error:', err);
         res.json({
             success: false,
             message: 'An error occurred while updating your profile. Please try again.',
@@ -270,5 +319,45 @@ exports.getAllBlacklistedTokens = (req, res) => {
             success: true,
             blacklistedTokens: results,
         });
+    });
+};
+
+// Middleware to show the current cookies
+exports.showCookies = (req, res, next) => {
+    const cookies = req.cookies;
+    
+    if (!cookies || Object.keys(cookies).length === 0) {
+        return res.json({
+            success: false,
+            message: 'No cookies found.'
+        });
+    }
+
+    return res.json({
+        success: true,
+        message: 'Cookies retrieved successfully.',
+        cookies: cookies
+    });
+};
+
+// Middleware to clear all cookies
+exports.clearCookies = (req, res, next) => {
+    const cookies = req.cookies;
+
+    if (!cookies || Object.keys(cookies).length === 0) {
+        return res.json({
+            success: false,
+            message: 'No cookies to clear.'
+        });
+    }
+
+    // Clear each cookie
+    for (let cookieName in cookies) {
+        res.clearCookie(cookieName);
+    }
+
+    return res.json({
+        success: true,
+        message: 'All cookies have been cleared.'
     });
 };

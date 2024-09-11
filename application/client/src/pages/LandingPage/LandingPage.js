@@ -29,7 +29,7 @@ const LandingPage = () => {
 
   const handleLogin = async (event) => {
     event.preventDefault();
-
+  
     try {
       const response = await fetch('http://localhost:4000/users/login', {  // Ensure the port matches your backend
         method: 'POST',
@@ -39,10 +39,11 @@ const LandingPage = () => {
         body: JSON.stringify({ emailOrId, password }),
         credentials: 'include',  // Include cookies with the request
       });
-
+  
       const data = await response.json();
-
+  
       if (data.success) {
+        console.log('User information:', data.user);  // Log user information after successful login
         sessionStorage.setItem('accessToken', data.accessToken);  // Store the JWT or session info
         window.location.href = '/home';  // Redirect to the home page after successful login
       } else {
