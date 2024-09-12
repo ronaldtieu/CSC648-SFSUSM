@@ -1,40 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import './EditProfile.css';
-import gatorDefaultPic from '../../assets/gator_default_pic.png';
-import { fetchUserProfile, updateUserProfile } from '../../service/profileService';
+import { fetchUserProfile, updateUserProfile } from '../../service/profileService'; 
 
 const EditProfile = () => {
-  const [formData, setFormData] = useState({
+  const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
     email: '',
-    studentId: '',  // Added studentId to state
+    studentId: '',
     major: '',
     minor: '',
-    pronouns: '',
-    profilePicture: gatorDefaultPic,
+    pronouns: ''
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const history = useHistory();
 
   useEffect(() => {
     const loadUserProfile = async () => {
       try {
-        console.log('Loading user profile for editing...');
         const userData = await fetchUserProfile();
-        setFormData({
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          email: userData.email,
-          studentId: userData.studentId || '',  // Set the studentId
-          major: userData.major,
-          minor: userData.minor,
-          pronouns: userData.pronouns,
-          profilePicture: userData.profilePicture || gatorDefaultPic,
-        });
-        console.log('User profile loaded:', userData);
+        setProfileData(userData); // Directly set the user data
       } catch (err) {
-        console.error('Error loading profile:', err.message);
+        console.error('Error loading profile for editing:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -45,31 +34,17 @@ const EditProfile = () => {
   }, []);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handlePictureChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({
-        ...formData,
-        profilePicture: URL.createObjectURL(file),
-      });
-    }
+    const { name, value } = e.target;
+    setProfileData({ ...profileData, [name]: value });
   };
 
   const handleSave = async () => {
     try {
-      console.log('Saving profile changes...');
-      await updateUserProfile(formData);
-      alert('Profile updated successfully!');
-      window.location.href = '/profile';
-    } catch (error) {
-      console.error('Failed to update profile:', error.message);
-      alert('Failed to update profile: ' + error.message);
+      await updateUserProfile(profileData);
+      history.push('/profile'); // Redirect to profile page after saving changes
+    } catch (err) {
+      console.error('Error saving profile:', err.message);
+      setError('Failed to save profile. Please try again.');
     }
   };
 
@@ -84,54 +59,52 @@ const EditProfile = () => {
   return (
     <div className="edit-profile-container">
       <h1>Edit Profile</h1>
-      <div className="profile-info">
-        <img 
-          src={formData.profilePicture} 
-          alt={`${formData.firstName} ${formData.lastName}`} 
-          className="profile-picture"
-        />
-        <div className="edit-overlay">
-          <label htmlFor="profilePictureInput" className="edit-label">Change</label>
-          <input 
-            type="file" 
-            accept="image/*" 
-            id="profilePictureInput"
-            className="profile-picture-input"
-            onChange={handlePictureChange}
-          />
+      <div className="edit-profile-form">
+        <div>
+          <label>
+            First Name:
+            <input type="text" name="firstName" value={profileData.firstName} onChange={handleChange} />
+          </label>
         </div>
+        <div>
+          <label>
+            Last Name:
+            <input type="text" name="lastName" value={profileData.lastName} onChange={handleChange} />
+          </label>
+        </div>
+        <div>
+          <label>
+            Email:
+            <input type="email" name="email" value={profileData.email} disabled className="readonly-input" />
+          </label>
+        </div>
+        <div>
+          <label>
+            Student ID:
+            <input type="text" name="studentId" value={profileData.studentId} disabled className="readonly-input" />
+          </label>
+        </div>
+        <div>
+          <label>
+            Major:
+            <input type="text" name="major" value={profileData.major} onChange={handleChange} />
+          </label>
+        </div>
+        <div>
+          <label>
+            Minor:
+            <input type="text" name="minor" value={profileData.minor} onChange={handleChange} />
+          </label>
+        </div>
+        <div>
+          <label>
+            Pronouns:
+            <input type="text" name="pronouns" value={profileData.pronouns} onChange={handleChange} />
+          </label>
+        </div>
+        <button onClick={handleSave}>Save Changes</button>
+        {error && <p className="error-message">{error}</p>}
       </div>
-      <form className="edit-profile-form">
-        <div>
-          <label>First Name:</label>
-          <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Last Name:</label>
-          <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Email:</label>
-          <input type="email" name="email" value={formData.email} readOnly className="readonly-input" />
-        </div>
-        <div>
-          <label>Student ID:</label>
-          <input type="text" name="studentId" value={formData.studentId} readOnly className="readonly-input" />  {/* Display Student ID */}
-        </div>
-        <div>
-          <label>Major:</label>
-          <input type="text" name="major" value={formData.major} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Minor:</label>
-          <input type="text" name="minor" value={formData.minor} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Pronouns:</label>
-          <input type="text" name="pronouns" value={formData.pronouns} onChange={handleChange} />
-        </div>
-        <button type="button" onClick={handleSave}>Save</button>
-      </form>
     </div>
   );
 };

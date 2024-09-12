@@ -26,7 +26,7 @@ router.get('/check-session', userController.verifyToken, (req, res) => {
 
 // Get user info
 router.get('/userInfo', userController.verifyToken, userController.getUserInfo, (req, res) => {
-    // Now you have access to req.user, which contains the user information
+    // Access to req.user, which contains the user information
     res.json({
         success: true,
         message: 'User profile retrieved successfully',

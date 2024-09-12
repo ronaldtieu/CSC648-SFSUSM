@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import './LandingPage.css';
+import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import './LandingPage.css';
 
 const LandingPage = () => {
   const [emailOrId, setEmailOrId] = useState('');
@@ -8,30 +8,11 @@ const LandingPage = () => {
   const [backendMessage, setBackendMessage] = useState('');
   const history = useHistory();
 
-  useEffect(() => {
-    fetch('http://localhost:4000/users/check-session', {  // Updated route
-      method: 'GET',
-      credentials: 'include'  // Include cookies with the request
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.loggedIn) {
-        console.log('User is logged in:', data.user);
-        history.push('/home'); // Redirect to home if already logged in
-      } else {
-        console.log('User is not logged in');
-      }
-    })
-    .catch(error => {
-      console.error('Error checking session:', error);
-    });
-  }, [history]);
-
   const handleLogin = async (event) => {
     event.preventDefault();
   
     try {
-      const response = await fetch('http://localhost:4000/users/login', {  // Ensure the port matches your backend
+      const response = await fetch('http://localhost:4000/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,13 +24,17 @@ const LandingPage = () => {
       const data = await response.json();
   
       if (data.success) {
-        console.log('User information:', data.user);  // Log user information after successful login
-        sessionStorage.setItem('accessToken', data.accessToken);  // Store the JWT or session info
-        window.location.href = '/home';  // Redirect to the home page after successful login
+        console.log('Login successful:', data); // Log the response
+        sessionStorage.setItem('accessToken', data.token);
+        // Redirect to /home and force a reload
+        history.push('/home');
+        window.location.reload();  // Reload the page to ensure the state is fully updated
       } else {
+        console.log('Login failed:', data.message); // Log the error message
         setBackendMessage(data.message);
       }
     } catch (error) {
+      console.log('An unexpected error occurred:', error); // Log unexpected errors
       setBackendMessage('An unexpected error occurred. Please try again later.');
     }
   };
@@ -85,6 +70,6 @@ const LandingPage = () => {
       </div>
     </div>
   );
-}
+};
 
 export default LandingPage;

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { FaBars, FaComment, FaBell } from 'react-icons/fa'; // Importing the necessary icons
+import { FaBars, FaComment, FaBell } from 'react-icons/fa';
 import './Header.css';
 import profilePic from '../../assets/gator_default_pic.png';
-import Messages from '../Messages/Messages'; // Import the Messages component
-import Notification from '../Notification/Notification'; // Import the Notification component
+import Messages from '../Messages/Messages'; 
+import Notification from '../Notification/Notification'; 
+import { logoutUser } from '../../service/profileService'; // Import the logout function
 
 const Header = ({ notifications, messages }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -12,7 +13,7 @@ const Header = ({ notifications, messages }) => {
   const sidebarRef = useRef(null);
   const messagesRef = useRef(null);
   const notificationsRef = useRef(null);
-  const history = useHistory(); // For redirecting after logout
+  const history = useHistory(); 
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -55,27 +56,9 @@ const Header = ({ notifications, messages }) => {
   }, [sidebarOpen, dropdownOpen]);
 
   const handleLogout = async (event) => {
-    event.preventDefault(); // Prevent default link behavior
-    try {
-      const response = await fetch('http://localhost:4000/api/users/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',  // Ensure cookies are included
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        sessionStorage.clear(); // Clear the session storage
-        window.location.href = '/'; // Redirect to the login page by reloading the page
-      } else {
-        console.error('Logout failed:', data.message);
-      }
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
+    event.preventDefault(); 
+    await logoutUser(); 
+    history.push('/'); 
   };
 
   return (
@@ -84,13 +67,15 @@ const Header = ({ notifications, messages }) => {
         <div className="logo">SFSU Social Media Platform</div>
         <nav>
           <ul>
+            {/* Home Button */}
             <li>
-              <Link to="/" className="home-icon" title="Home">
+              <Link to="/home" className="home-icon" title="Home">
                 <svg viewBox="0 0 64 64" width="32" height="32" fill="currentColor">
                   <path d="M32 2 L2 32 L12 32 L12 58 L26 58 L26 34 L38 34 L38 58 L52 58 L52 32 L62 32 Z" />
                 </svg>
               </Link>
             </li>
+
             {/* Messages Dropdown */}
             <li className="messages-container" ref={messagesRef}>
               <button onClick={() => toggleDropdown('messages')} className="messages-button" title="Messages">
@@ -100,6 +85,7 @@ const Header = ({ notifications, messages }) => {
                 <Messages messages={messages} closeDropdown={closeDropdown} />
               )}
             </li>
+
             {/* Notifications Dropdown */}
             <li className="notification-container" ref={notificationsRef}>
               <button onClick={() => toggleDropdown('notifications')} className="notification-button" title="Notifications">
@@ -109,11 +95,15 @@ const Header = ({ notifications, messages }) => {
                 <Notification notifications={notifications} closeDropdown={closeDropdown} />
               )}
             </li>
+
+            {/* Profile Button */}
             <li>
               <Link to="/profile">
                 <img src={profilePic} alt="Profile" className="profile-pic" title="Profile" />
               </Link>
             </li>
+
+            {/* Sidebar / Menu Button */}
             <li className="navbar-container">
               <button onClick={toggleSidebar} className="navbar-button" title="Menu">
                 <FaBars />
@@ -122,6 +112,8 @@ const Header = ({ notifications, messages }) => {
           </ul>
         </nav>
       </header>
+
+      {/* Sidebar */}
       <div ref={sidebarRef} className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <ul>
           <li><Link to="/tutoring-mentorship" onClick={closeSidebar}>Peer Tutoring & Mentorship</Link></li>
@@ -133,6 +125,7 @@ const Header = ({ notifications, messages }) => {
           <li><a href="/" onClick={handleLogout}>Logout</a></li>
         </ul>
       </div>
+
       <div className={`main-content ${sidebarOpen ? 'shift' : ''}`}>
         {/* Main content goes here */}
       </div>

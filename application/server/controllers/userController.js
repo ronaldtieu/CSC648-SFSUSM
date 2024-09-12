@@ -58,8 +58,8 @@ exports.loginUser = async (req, res) => {
                 return res.json({
                     success: false,
                     message: 'You are already logged in. Please log out before logging in with another account.',
-                    token: existingToken, // Optionally return the existing token
-                    user: decoded // Optionally return the decoded token info
+                    token: existingToken, 
+                    user: decoded 
                 });
             } catch (err) {
                 // If the token is invalid (expired or tampered), allow login to proceed
@@ -116,7 +116,7 @@ exports.loginUser = async (req, res) => {
             return res.json({
                 success: true,
                 message: 'Login successful! Welcome back!',
-                token, // Optionally return the token as well
+                token, 
             });
         });
     } catch (err) {
@@ -222,7 +222,18 @@ exports.getUserInfo = (req, res, next) => {
             });
         }
 
-        const query = `SELECT * FROM Users WHERE ID = ?`;
+        const query = `
+            SELECT 
+                FirstName,
+                LastName,
+                Email,
+                ID AS StudentID,
+                Major,
+                Minor,
+                Pronouns
+            FROM Users 
+            WHERE ID = ?
+        `;
 
         db.query(query, [decoded.id], (err, results) => {
             if (err) {
@@ -246,7 +257,7 @@ exports.getUserInfo = (req, res, next) => {
 };
 
 // Edit user profile
-exports.editUserProfile = async (req, res) => {
+exports.editUserProfile = async (req, res, next) => {
     const userId = req.userId; // The userId should be set by the verifyToken middleware
     const { firstName, lastName, email, major, minor, pronouns } = req.body;
 
@@ -266,10 +277,8 @@ exports.editUserProfile = async (req, res) => {
         db.query(query, queryParams, (err, result) => {
             if (err) {
                 console.error('SQL Error:', err);
-                return res.json({
-                    success: false,
-                    message: 'There was an error updating your profile. Please try again.',
-                });
+                // Pass the error to the next middleware
+                return next(new Error('There was an error updating your profile. Please try again.'));
             }
 
             res.json({
@@ -279,15 +288,13 @@ exports.editUserProfile = async (req, res) => {
         });
     } catch (err) {
         console.error('Catch Error:', err);
-        res.json({
-            success: false,
-            message: 'An error occurred while updating your profile. Please try again.',
-        });
+        // Pass the error to the next middleware
+        next(new Error('An error occurred while updating your profile. Please try again.'));
     }
 };
 
 
-// Middleware to clear TokenBlacklist table and blacklisted array
+// Clear TokenBlacklist table and blacklisted array
 exports.clearBlacklist = async (req, res, next) => {
     const clearTableQuery = 'DELETE FROM TokenBlacklist';
     db.query(clearTableQuery, (err, result) => {
