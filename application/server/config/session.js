@@ -1,59 +1,42 @@
-const session = require('express-session');
-const db = require('../config/db');
+const jwt = require('jsonwebtoken');
 
-// Session configuration
-exports.sessionMiddleware = session({
-  secret: process.env.SESSION_SECRET, // Load the secret from environment variables
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false, httpOnly: true } // secure: true in production
-});
+// Check if user is authenticated with JWT
+exports.checkAuth = (req, res) => {
+    const token = req.headers['authorization'];
+    if (!token) {
+        return res.json({ success: false, message: 'Token not found. Please log in.' });
+    }
 
-// Function to check the session and return user info
-exports.checkSession = (req, res) => {
-    if (req.session.userId) {
-        console.log('Session ID:', req.session.id);  // Log the session ID
-        console.log('User ID in session:', req.session.userId);  // Log the user ID stored in session
+    console.log("This is the token =  " + token);
+    console.log("This is the JWT_SECRET = " + process.env.JWT_SECRET );
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.json({ success: false, message: 'The token is invalid or has expired. Please log in again.' });
+        }
 
         const query = `SELECT * FROM Users WHERE ID = ?`;
-
-        db.query(query, [req.session.userId], (err, results) => {
+        db.query(query, [decoded.id], (err, results) => {
             if (err) {
-                console.error('Error fetching user data:', err.stack);
-                return res.status(500).json({ success: false, message: 'Error fetching user data' });
+                return res.json({ success: false, message: 'An error occurred while checking your session. Please try again later.' });
             }
-
             if (results.length === 0) {
-                return res.status(404).json({ success: false, message: 'User not found' });
+                return res.json({ success: false, message: 'User not found. Please log in.' });
             }
 
             const user = results[0];
             res.json({
+                success: true,
                 loggedIn: true,
                 user: {
                     firstName: user.FirstName,
                     lastName: user.LastName,
                     email: user.Email,
-                    studentId: req.session.userId,  // Add studentId as userId
                     major: user.Major,
                     minor: user.Minor,
                     pronouns: user.Pronouns,
                 }
             });
         });
-    } else {
-        console.log('No session or user is not logged in');  // Log if no session exists
-        res.json({ loggedIn: false });
-    }
-};
-
-exports.logoutUser = (req, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('Error destroying session:', err);
-        return res.json({ success: false, message: 'Error logging out. Please try again.' });
-      }
-      res.clearCookie('connect.sid'); // Clears the session cookie
-      res.json({ success: true, message: 'Logout successful' });
     });
-  };
+};

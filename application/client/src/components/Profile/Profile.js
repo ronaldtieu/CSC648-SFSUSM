@@ -6,7 +6,16 @@ import DominoLoader from '../DominoLoader/DominoLoader';
 import { fetchUserProfile } from '../../service/profileService'; 
 
 const Profile = () => {
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    studentId: '',
+    major: '',
+    minor: '',
+    pronouns: '',
+    profilePicture: gatorDefaultPic,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const history = useHistory();
@@ -36,14 +45,10 @@ const Profile = () => {
     return <p>Error loading profile: {error}</p>;  // Display an error message if there's any
   }
 
-  // Debugging: Check if the profile data contains userId
-  console.log('Profile data:', profile);
-
   return (
     <div className="profile-container">
       {profile ? (
         <>
-          <h1>{profile.firstName} {profile.lastName}</h1>
           <div className="profile-info">
             <img 
               src={profile.profilePicture || gatorDefaultPic} 
@@ -53,9 +58,10 @@ const Profile = () => {
             <button className="edit-button" onClick={() => history.push('/edit-profile')}>Edit</button>
           </div>
           <div className="profile-details">
-            <p><strong>Name:</strong> {profile.firstName} {profile.lastName}</p>
+            <p><strong>First Name:</strong> {profile.firstName}</p>
+            <p><strong>Last Name:</strong> {profile.lastName}</p>
             <p><strong>Email:</strong> {profile.email}</p>
-            <p><strong>Student ID:</strong> {profile.studentId || 'ID not found'}</p>  {/* Displaying student ID */}
+            <p><strong>Student ID:</strong> {profile.studentId || 'ID not found'}</p>
             <p><strong>Major:</strong> {profile.major}</p>
             <p><strong>Minor:</strong> {profile.minor}</p>
             <p><strong>Pronouns:</strong> {profile.pronouns}</p>

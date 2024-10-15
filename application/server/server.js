@@ -1,9 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const cookieParser = require('cookie-parser'); // Import cookie-parser
+
 require('dotenv').config();  // Load environment variables from .env file
 
-const sessionMiddleware = require('./config/session').sessionMiddleware;  // Import the session middleware
 const userRoutes = require('./routes/userRoutes');  // Import the user routes
 
 const app = express();
@@ -15,9 +16,9 @@ app.use(cors({
     credentials: true  // Enable cookies and other credentials to be sent from the frontend
 }));
 
-app.use(sessionMiddleware);  // Use the session middleware
+app.use(cookieParser()); // Use cookie-parser middleware
 
-// Use the user routes for all /users/* endpoints
+// Use the user routes for all /users/* endpoints without global JWT verification
 app.use('/users', userRoutes);
 
 app.listen(port, () => {
