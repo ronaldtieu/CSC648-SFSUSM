@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import gatorDefaultPic from '../../assets/gator_default_pic.png';
-import './Profile.css';
+import './ViewProfile.css';
 import DominoLoader from '../DominoLoader/DominoLoader';
 import { fetchUserProfile } from '../../service/profileService'; 
 

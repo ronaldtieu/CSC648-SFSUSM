@@ -5,7 +5,7 @@ import Footer from './components/Footer/Footer';
 import Home from './components/Home/Home';
 import MessagesPage from './components/MessagePage/MessagePage';
 import Settings from './components/Settings/Setting';
-import Profile from './components/Profile/Profile';
+import ViewProfile from './components/Profile/ViewProfile';  
 import EditProfile from './components/Profile/EditProfile';
 import NotificationsPage from './components/NotificationsPage/NotificationsPage';
 import TutoringMentorshipPage from './pages/TutoringMentorship/TutoringMentorship';
@@ -51,7 +51,7 @@ const App = () => {
 
         {/* Authenticated routes with Header and Footer */}
         <ProtectedRoute path="/home" component={Home} isLoggedIn={isLoggedIn} />
-        <ProtectedRoute path="/profile" component={Profile} isLoggedIn={isLoggedIn} />
+        <ProtectedRoute path="/profile" component={ViewProfile} isLoggedIn={isLoggedIn} />  {/* Updated route */}
         <ProtectedRoute path="/edit-profile" component={EditProfile} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/messages" component={MessagesPage} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/settings" component={Settings} isLoggedIn={isLoggedIn} />
