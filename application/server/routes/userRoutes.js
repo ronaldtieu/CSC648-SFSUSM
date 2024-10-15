@@ -52,7 +52,10 @@ router.get('/getCookies', userController.showCookies);
 // clearing all cookies that currently exist
 router.get('/clearCookies', userController.clearCookies);
 
+// Get school majors
+router.get('/majors', userController.getMajor);
 
-
+// Get school minors
+router.get('/minors', userController.getMinor);
 
 module.exports = router;

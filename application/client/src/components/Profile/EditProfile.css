@@ -80,17 +80,20 @@
   font-weight: bold;
 }
 
-.edit-profile-form input {
-  width: 100%;
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  box-sizing: border-box; /* Ensure all input fields are the same size */
+.edit-profile-form input,
+.edit-profile-form select {
+  width: 100%; /* Match the input fields */
+  padding: 8px; /* Same padding as input fields */
+  border-radius: 4px; /* Rounded corners like input fields */
+  border: 1px solid #ccc; /* Same border as input fields */
+  font-size: 1rem; /* Same font size */
+  box-sizing: border-box; /* Ensure consistent sizing */
+  background-color: #ffffff; /* Set to white to match the input fields */
 }
 
-.readonly-input {
-  background-color: #e9ecef; /* Greyed out background */
+/* Ensure that the email and student ID fields are greyed out properly */
+.edit-profile-form input.readonly-input {
+  background-color: #e9ecef; /* Greyed out background for read-only inputs */
   cursor: not-allowed; /* Not editable */
 }
 

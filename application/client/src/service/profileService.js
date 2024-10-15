@@ -122,3 +122,49 @@ export const logoutUser = async () => {
         console.error('Error logging out:', error);
     }
 };
+
+export const fetchMajors = async () => {
+    try {
+        const response = await fetch (`${API_BASE_URL}/majors`, {
+            method: 'GET',
+            credential: 'include', // ensuring all cookies are included
+        });
+
+        if(!response.ok) {
+            throw new Error (`Response error. Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if(!data.success) {
+            throw new Error ('Data fetch failed when fetching the majors.');
+        }
+        return data.message;
+    }
+    catch (error) {
+        console.error('Try catch error when fetching majors: ', error.message);
+        throw error;
+    }
+};
+
+export const fetchMinors = async () => {
+    try {
+        const response = await fetch (`${API_BASE_URL}/minors`, {
+            method: 'GET',
+            credential: 'include', // ensuring all cookies are included
+        });
+
+        if(!response.ok) {
+            throw new Error (`Response error. Status ${response.status}`);
+        }
+
+        const data = await response.json();
+        if(!data.success) {
+            throw new Error (`Data fetch failed when fetching the minors`)
+        }
+        return data.message;
+    }
+    catch(error) {
+        console.error('Try catch errro when fetching minors: ', error.message);
+        throw error;
+    }
+}

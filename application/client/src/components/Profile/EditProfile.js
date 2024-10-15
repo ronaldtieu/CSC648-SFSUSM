@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import './EditProfile.css';
-import { fetchUserProfile, updateUserProfile } from '../../service/profileService'; 
+import { fetchUserProfile, updateUserProfile, fetchMajors, fetchMinors } from '../../service/profileService'; 
 
 const EditProfile = () => {
   const [profileData, setProfileData] = useState({
@@ -15,6 +15,8 @@ const EditProfile = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [majors, setMajors] = useState([]); // State for majors
+  const [minors, setMinors] = useState([]); // State for minors
   const history = useHistory();
 
   useEffect(() => {
@@ -30,8 +32,22 @@ const EditProfile = () => {
       }
     };
 
-    loadUserProfile();
-  }, []);
+    const loadMajorsAndMinors = async () => {
+      try {
+        const majorsList = await fetchMajors();
+        setMajors(majorsList);
+
+        const minorsList = await fetchMinors();
+        setMinors(minorsList);
+      } catch (err) {
+        console.error('Error loading majors or minors: ', err);
+        setError('Failed to load majors or minors');
+      }
+    };
+
+    loadUserProfile(); // Load user profile when component mounts
+    loadMajorsAndMinors(); // Load majors and minors when component mounts
+  }, []); // Run only once after component mounts
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -87,13 +103,27 @@ const EditProfile = () => {
         <div>
           <label>
             Major:
-            <input type="text" name="major" value={profileData.major} onChange={handleChange} />
+            <select name="major" value={profileData.major} onChange={handleChange}>
+              <option value="" disabled>Select Major</option>
+              {majors.map((major) => (
+                <option key={major.ID} value={major.MajorName}>
+                  {major.MajorName}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
         <div>
           <label>
             Minor:
-            <input type="text" name="minor" value={profileData.minor} onChange={handleChange} />
+            <select name="minor" value={profileData.minor} onChange={handleChange}>
+              <option value="" disabled>Select Minor</option>
+              {minors.map((minor) => (
+                <option key={minor.ID} value={minor.MinorName}>
+                  {minor.MinorName}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
         <div>

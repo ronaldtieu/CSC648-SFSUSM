@@ -368,3 +368,41 @@ exports.clearCookies = (req, res, next) => {
         message: 'All cookies have been cleared.'
     });
 };
+
+// Get Majors
+exports.getMajor = (req, res) => {
+    const query = 'SELECT * FROM Majors';
+
+    db.query(query, (err, results) => {
+        if(err) {
+            console.error('SQL Error:', err);
+            return res.json({
+                success: false,
+                message: 'There was an error retrieving the list of majors',
+            });
+        }
+        res.json({
+            success: true,
+            message: results, // return the inserts of majors
+        });
+    });
+};
+
+// Get Minors
+exports.getMinor = (req, res) => {
+    const query = 'SELECT * FROM Minors';
+    
+    db.query(query, (err, results) => {
+        if(err) {
+            console.error('SQL Error: ', err);
+            return res.json({
+                success: false,
+                message: 'There was an error retrieving the list of minors'
+            });
+        }
+        res.json({
+            success: true,
+            message: results,
+        });
+    });
+};
