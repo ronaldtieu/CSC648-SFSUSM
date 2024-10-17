@@ -25,14 +25,7 @@ router.get('/check-session', userController.verifyToken, (req, res) => {
 });
 
 // Get user info
-router.get('/userInfo', userController.verifyToken, userController.getUserInfo, (req, res) => {
-    // Access to req.user, which contains the user information
-    res.json({
-        success: true,
-        message: 'User profile retrieved successfully',
-        user: req.user
-    });
-});
+router.get('/userInfo', userController.verifyToken, userController.getUserInfo);
 
 // Route to edit user profile
 router.put(
@@ -57,5 +50,6 @@ router.get('/majors', userController.getMajor);
 
 // Get school minors
 router.get('/minors', userController.getMinor);
+
 
 module.exports = router;

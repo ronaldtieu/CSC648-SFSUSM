@@ -168,3 +168,37 @@ export const fetchMinors = async () => {
         throw error;
     }
 }
+
+export const fetchUserPosts = async () => {
+    try {
+        console.log('Attempting to fetch user posts from /user/posts endpoint...');
+  
+        const response = await fetch(`${API_BASE_URL}/getUserPosts`, {
+            method: 'GET',
+            credentials: 'include', // Ensure cookies are included
+        });
+  
+        if (!response.ok) {
+            throw new Error(`Failed to fetch user posts. Received HTTP status: ${response.status}. Please check if the server is running and the endpoint is correct.`);
+        }
+  
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();  // Attempt to get the text response
+            console.error('Received non-JSON response:', text);  // Log the response for debugging
+            throw new Error('The response format was not JSON as expected. Please ensure the server is returning JSON.');
+        }
+  
+        const data = await response.json();
+        console.log('Successfully fetched user posts:', data);
+  
+        if (!data.success) {
+            throw new Error('Failed to fetch user posts. Please try again.');
+        }
+  
+        return data.posts; // Return the fetched posts (with first name, last name, and post data)
+    } catch (error) {
+        console.error('An error occurred while fetching user posts:', error.message);
+        throw error; // Re-throw error for handling in the calling function
+    }
+  };

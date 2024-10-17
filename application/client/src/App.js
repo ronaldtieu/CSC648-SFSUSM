@@ -5,7 +5,7 @@ import Footer from './components/Footer/Footer';
 import Home from './components/Home/Home';
 import MessagesPage from './components/MessagePage/MessagePage';
 import Settings from './components/Settings/Setting';
-import ViewProfile from './components/Profile/ViewProfile';  
+import Profile from './components/Profile/Profile';  // Import the new Profile component
 import EditProfile from './components/Profile/EditProfile';
 import NotificationsPage from './components/NotificationsPage/NotificationsPage';
 import TutoringMentorshipPage from './pages/TutoringMentorship/TutoringMentorship';
@@ -13,7 +13,8 @@ import Marketplace from './pages/Marketplace/Marketplace';
 import DiscountsDeals from './pages/DiscountDeals/DiscountDeals';
 import LandingPage from './pages/LandingPage/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import { checkSession } from './service/profileService'; // Import checkSession from profileService
+import { checkSession, fetchUserPosts } from './service/profileService'; 
+import ViewProfile from './components/Profile/ViewProfile'
 
 import './App.css';
 
@@ -51,7 +52,9 @@ const App = () => {
 
         {/* Authenticated routes with Header and Footer */}
         <ProtectedRoute path="/home" component={Home} isLoggedIn={isLoggedIn} />
-        <ProtectedRoute path="/profile" component={ViewProfile} isLoggedIn={isLoggedIn} />  {/* Updated route */}
+        <ProtectedRoute path="/profile" component={Profile} isLoggedIn={isLoggedIn} /> 
+        <ProtectedRoute path="/view-profile" component={ViewProfile} isLoggedIn={isLoggedIn} />
+
         <ProtectedRoute path="/edit-profile" component={EditProfile} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/messages" component={MessagesPage} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/settings" component={Settings} isLoggedIn={isLoggedIn} />

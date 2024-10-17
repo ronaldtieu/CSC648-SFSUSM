@@ -87,6 +87,11 @@ exports.loginUser = async (req, res) => {
 
             const user = results[0];
             const isMatch = await bcrypt.compare(password, user.Password);
+            
+            // Debug logs to help track the password comparison
+            console.log('Hashed password in DB:', user.Password);  // Log the hashed password from the DB
+            console.log('User-provided password:', password);  // Log the plain text password provided by the user
+          
 
             if (!isMatch) {
                 return res.json({
@@ -406,3 +411,4 @@ exports.getMinor = (req, res) => {
         });
     });
 };
+

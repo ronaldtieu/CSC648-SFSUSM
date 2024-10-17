@@ -229,3 +229,44 @@ INSERT INTO Minors (MinorName) VALUES ('Urban Studies and Planning');
 INSERT INTO Minors (MinorName) VALUES ('Video Game Studies');
 INSERT INTO Minors (MinorName) VALUES ('Women and Gender Studies');
 INSERT INTO Minors (MinorName) VALUES ('World Development Studies');
+
+
+-- Insert users
+INSERT INTO Users (FirstName, LastName, Email, Password, Major, Minor, Pronouns) 
+VALUES 
+('Ron', 'T', 'ron@example.com', '1', 'Computer Science', NULL, 'he/him'),
+('Ray', 'Liu', 'ray@example.com', '2', 'Mechanical Engineering', NULL, 'he/him'),
+('Cody', 'T', 'cody@example.com', '3', 'Business Administration', NULL, 'he/him');
+
+
+INSERT INTO Posts (UserID, Content) 
+VALUES (2, 'hello everyone, my name is ray liu and this is my first post.');
+
+
+-- friendship between User 1 and User 2
+INSERT INTO Friendships (User1ID, User2ID, Status) VALUES
+(1, 2, 'accepted');
+
+INSERT INTO Posts (UserID, Content) VALUES
+(1, 'Just finished an amazing project for my computer science class! Excited to share it soon.'),
+(1, 'Anyone up for a study session this weekend? Need help with algorithms.'),
+(1, 'Exploring a new career path in software engineering, feeling both nervous and excited!');
+
+INSERT INTO Posts (UserID, Content) VALUES
+(2, 'Looking forward to the new semester. Ready to tackle some challenging courses!');
+
+-- Insert for likes:
+INSERT INTO Likes (UserID, PostID) 
+VALUES 
+(1, 1),  -- Ron T likes Ray Liu's post
+(2, 1),  -- Ray Liu likes his own post
+(3, 1);  -- Cody T likes Ray Liu's post
+
+-- Inserts for comments:
+-- Insert comments on Ray Liu's post (PostID = 1) from Ron T and Cody T
+INSERT INTO Comments (UserID, PostID, Content) 
+VALUES 
+(1, 1, 'Great post, Ray!'),  -- Ron T comments
+(3, 1, 'I agree, great post!');  -- Cody T comments
+
+
