@@ -1,0 +1,205 @@
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background-color: #4b0082; /* Dark Purple Banner color */
+  color: #FCCB06; /* Dark Gold for SFSU text */
+  font-family: 'Titillium Web', Arial, sans-serif; /* Font for the header */
+}
+
+.header .logo {
+  font-size: 24px;
+  color: #FCCB06; /* Dark Gold color for logo text */
+}
+
+.header nav {
+  display: flex;
+  align-items: center;
+}
+
+.header nav ul {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.header nav ul li {
+  margin-right: 20px;
+  position: relative;
+}
+
+.header nav ul li a,
+.header nav ul li button {
+  color: #FCCB06; /* Dark Gold */
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Profile Picture */
+.profile-pic {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Navbar Button */
+.navbar-button {
+  color: #FCCB06;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  transition: transform 0.3s ease;
+}
+
+.navbar-button:hover {
+  transform: scale(1.1);
+}
+
+/* Search Bar Styling */
+.search-container {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.search-input {
+  padding: 8px 10px; /* Increased padding for height */
+  border: 1px solid #ccc;
+  border-radius: 4px 0 0 4px;
+  font-size: 14px;
+  width: 180px;
+  height: 36px; /* Set height for consistency */
+  box-sizing: border-box;
+}
+
+.search-button {
+  padding: 0 12px; /* Adjust padding */
+  height: 36px; /* Match height with search bar */
+  background-color: #FCCB06;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-button svg {
+  font-size: 16px;
+  color: #4b0082; /* Dark Purple Icon Color */
+}
+
+
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -250px;
+  width: 250px;
+  height: 100%;
+  background-color: #4b0082; /* Dark Purple */
+  color: #FCCB06; /* Dark Gold */
+  overflow-x: hidden;
+  transition: 0.3s;
+  padding-top: 60px;
+  z-index: 1000; /* Ensure the sidebar is on top */
+}
+
+.sidebar.open {
+  right: 0;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  padding: 10px 15px;
+}
+
+.sidebar ul li a {
+  color: #FCCB06; /* Dark Gold */
+  text-decoration: none;
+  display: block;
+  transition: 0.3s;
+}
+
+.sidebar ul li a:hover {
+  background-color: #575757;
+}
+
+.main-content {
+  transition: margin-right 0.3s;
+  padding: 20px;
+}
+
+.main-content.shift {
+  margin-right: 250px;
+}
+
+/* Home Icon Styling */
+.home-icon {
+  display: block;
+  text-align: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #4b0082; /* Dark Purple */
+  position: relative;
+  transition: color 0.3s, transform 0.3s;
+}
+
+.home-icon:hover {
+  color: #FCCB06; /* Dark Gold on hover */
+  transform: scale(1.1);
+}
+
+.home-icon::after {
+  content: attr(title);
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #4b0082;
+  color: #FCCB06;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  z-index: 1002;
+}
+
+.home-icon:hover::after {
+  opacity: 1;
+}
+
+/* Additional Icon Styling */
+.messages-icon,
+.notifications-icon,
+.home-icon svg {
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  fill: #FCCB06; /* Dark Gold */
+}
+
+.messages-icon:hover,
+.notifications-icon:hover,
+.home-icon svg:hover {
+  transform: scale(1.1);
+}

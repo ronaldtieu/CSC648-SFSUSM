@@ -1,0 +1,65 @@
+/* animations/DominoLoader.css */
+
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .domino-loader {
+    display: flex;
+    justify-content: space-between;
+    width: 120px;
+    perspective: 800px; /* Adds 3D perspective */
+  }
+  
+  .domino {
+    width: 10px;
+    height: 50px;
+    margin: 0 5px;
+    transform-origin: left bottom; /* Pivot from the bottom left corner */
+    transform-style: preserve-3d;
+    animation: fall 1.5s infinite ease-in-out;
+    background-color: #4b0082; /* Default color is SFSU purple */
+  }
+  
+  .domino:nth-child(odd) {
+    background-color: #4b0082; /* SFSU purple for odd dominoes */
+  }
+  
+  .domino:nth-child(even) {
+    background-color: #ffc72c; /* SFSU gold for even dominoes */
+  }
+  
+  .domino1 {
+    animation-delay: 0s;
+  }
+  
+  .domino2 {
+    animation-delay: 0.3s;
+  }
+  
+  .domino3 {
+    animation-delay: 0.6s;
+  }
+  
+  .domino4 {
+    animation-delay: 0.9s;
+  }
+  
+  .domino5 {
+    animation-delay: 1.2s;
+  }
+  
+  @keyframes fall {
+    0% {
+      transform: rotateZ(0deg);
+    }
+    50% {
+      transform: rotateZ(45deg);
+    }
+    100% {
+      transform: rotateZ(90deg);
+    }
+  }

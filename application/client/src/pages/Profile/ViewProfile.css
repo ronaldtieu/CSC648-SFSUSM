@@ -1,0 +1,82 @@
+/* Profile.css */
+
+.profile-container {
+  width: 80%;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center; /* Center all text and inline elements */
+}
+
+.profile-container h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.profile-info {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+  width: 100px;
+  height: 100px;
+}
+
+.profile-picture {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: 0.3s ease-in-out;
+}
+
+.edit-button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.profile-info:hover .profile-picture {
+  filter: brightness(80%);
+}
+
+.profile-info:hover .edit-button {
+  opacity: 1;
+  pointer-events: auto;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.edit-button:focus {
+  outline: none;
+}
+
+.profile-details {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.profile-details p {
+  font-size: 1.2rem;
+  margin: 10px 0;
+}
+
+.profile-details strong {
+  color: #4b0082; /* SFSU purple for emphasis */
+}

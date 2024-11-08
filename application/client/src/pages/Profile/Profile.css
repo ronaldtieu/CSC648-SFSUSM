@@ -1,0 +1,89 @@
+.profile {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    text-align: center;  /* Centers all content inside the profile */
+}
+
+/* Profile header styling */
+h1 {
+    font-size: 2em;
+    color: #4b0082;
+    margin-bottom: 10px;  /* Adds space below the header */
+}
+
+/* View Profile button styling */
+.view-profile-button {
+    padding: 8px 16px;
+    background-color: #4b0082;
+    color: #fff;
+    border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 1em;
+    margin-top: 20px;  /* Adds space below the header */
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+/* Container for aligning View Profile and Post box */
+.post-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Align both to the left */
+    margin-bottom: 20px;
+}
+
+/* Post section styling */
+.post-section {
+    width: 100%;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+/* Post list styling */
+.post-list {
+    margin-top: 20px;
+}
+
+/* Editable content box styling */
+.edit-content textarea {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    border: 1px solid #4b0082;
+    border-radius: 10px;
+    resize: none;
+    outline: none;
+    font-family: 'Titillium Web', Arial, sans-serif;
+    font-size: 1em;
+    color: #333;
+    background-color: #f1f1fc;
+    margin-bottom: 10px;
+}
+
+/* Post button styling */
+.post-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #4b0082;
+    color: #FCCB06;
+    border: none;
+    border-radius: 50%;
+    padding: 8px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    z-index: 1;
+}
+
+.post-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.post-button:active {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
