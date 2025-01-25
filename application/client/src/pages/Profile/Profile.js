@@ -12,6 +12,7 @@ const Profile = () => {
     const [loading, setLoading] = useState(true);
     const [userId, setUserId] = useState(null);
 
+    // Fetching session data to get the user ID
     useEffect(() => {
         const loadSessionData = async () => {
             try {
@@ -28,12 +29,16 @@ const Profile = () => {
         loadSessionData();
     }, []);
 
+
+    // Fetch user posts when userId is available
     useEffect(() => {
         if (userId) {
             loadUserPosts();
         }
     }, [userId]);
 
+
+    // Helper function to fetch user posts
     const loadUserPosts = async () => {
         try {
             const postsData = await fetchUserPosts();
@@ -51,6 +56,9 @@ const Profile = () => {
         }
     };
 
+    
+
+    // Rendering the profile page 
     return (
         <div className="profile">
             <h1>My Profile</h1>
