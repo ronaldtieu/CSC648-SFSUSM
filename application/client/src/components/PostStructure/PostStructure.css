@@ -12,6 +12,7 @@
     flex-direction: column; /* Stack elements vertically */
     align-items: flex-start; /* Align items to the left */
     box-sizing: border-box; /* Ensure padding is included in width calculation */
+
 }
 
 /* Post author name at the top left */
@@ -27,8 +28,13 @@
 .post-content {
     font-size: 1em;
     color: #444;
-    line-height: 1.5; /* Better readability */
-    margin: 0; /* Remove extra margins */
+    line-height: 1.5; 
+    margin: 0; 
+    padding: 0;
+    text-align: left;
+    width: 100%; 
+    box-sizing: border-box; 
+    word-wrap: break-word; 
 }
 
 /* Styling for post author name */
