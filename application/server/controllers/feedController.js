@@ -13,35 +13,34 @@ exports.getUserFeed = (req, res) => {
     }
 
     const getUserFeedQuery = `
-        SELECT p.ID AS postId, p.Content AS content, p.CreatedAt AS createdAt, 
-               u.FirstName AS firstName, u.LastName AS lastName, 'user' AS source
+        SELECT DISTINCT 
+            p.ID AS postId, 
+            p.Content AS content, 
+            p.CreatedAt AS createdAt, 
+            u.FirstName AS firstName, 
+            u.LastName AS lastName, 
+            CASE 
+                -- Determine the source of the post
+                WHEN p.UserID = ? THEN 'user'       -- Posts from the user themselves
+                WHEN p.GroupID IS NOT NULL THEN 'group' -- Posts from groups the user is a member of
+                ELSE 'friend'                      -- Posts from the user's friends
+            END AS source
         FROM Posts p
         JOIN Users u ON p.UserID = u.ID
-        WHERE p.UserID = ?  -- User's own posts
-        
-        UNION
-        
-        SELECT p.ID AS postId, p.Content AS content, p.CreatedAt AS createdAt, 
-               u.FirstName AS firstName, u.LastName AS lastName, 'friend' AS source
-        FROM Posts p
-        JOIN Friends f ON (f.UserID1 = ? AND f.UserID2 = p.UserID) OR (f.UserID2 = ? AND f.UserID1 = p.UserID)
-        JOIN Users u ON p.UserID = u.ID
-        
-        UNION
-        
-        SELECT p.ID AS postId, p.Content AS content, p.CreatedAt AS createdAt, 
-               u.FirstName AS firstName, u.LastName AS lastName, 'group' AS source
-        FROM Posts p
-        JOIN GroupMembers gm ON gm.UserID = p.UserID
-        JOIN \`Groups\` g ON gm.GroupID = g.ID
-        JOIN Users u ON p.UserID = u.ID
-        WHERE gm.GroupID IN (SELECT GroupID FROM GroupMembers WHERE UserID = ?)
-
-        ORDER BY createdAt DESC
-        LIMIT 50;  -- Limit results to the latest 50 for performance
+        -- Join with Friends table to include posts from the user's friends
+        LEFT JOIN Friends f ON (f.UserID1 = ? AND f.UserID2 = p.UserID) 
+                           OR (f.UserID2 = ? AND f.UserID1 = p.UserID)
+        -- Join with GroupMembers table to include posts from groups the user is in
+        LEFT JOIN GroupMembers gm ON gm.UserID = p.UserID
+        WHERE 
+            p.UserID = ? -- Fetch the user's own posts
+            OR f.ID IS NOT NULL -- Fetch posts from friends (via Friends table)
+            OR gm.GroupID IN (SELECT GroupID FROM GroupMembers WHERE UserID = ?) -- Fetch posts from groups the user is in
+        ORDER BY p.CreatedAt DESC
+        LIMIT 50; -- Fetch only the latest 50 posts for efficiency
     `;
 
-    db.query(getUserFeedQuery, [userId, userId, userId, userId], (err, results) => {
+    db.query(getUserFeedQuery, [userId, userId, userId, userId, userId], (err, results) => {
         if (err) {
             console.error('Error retrieving user feed:', err);
             return res.json({
