@@ -39,7 +39,7 @@ export const fetchUserPosts = async () => {
   // create post
 export const createPost = async (content) => {
     try {
-        console.log('Content being sent:', content);
+        // console.log('Content being sent:', content);
 
         const response = await fetch(`${API_BASE_URL}/createPost`, {
             method: 'POST',
