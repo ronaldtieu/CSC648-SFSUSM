@@ -101,14 +101,15 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
             console.error('Error deleting post:', error);
         }
     };
-
+    
     return (
         <div className="post-item">
-            {/* Show post creator's name */}
+            {/* Post creator's name in the top-left corner */}
             <div className="post-author">
-                <p><strong>{post.FirstName} {post.LastName}</strong></p>
+                <p>{post.FirstName} {post.LastName}</p>
             </div>
-
+    
+            {/* Post content aligned to the left */}
             {editMode ? (
                 <div className="edit-content">
                     <textarea
@@ -120,24 +121,29 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
                     <button onClick={() => setEditMode(false)}>Cancel</button>
                 </div>
             ) : (
-                <p>{content}</p> // Display content from the state
+                <div className="post-content">
+                    <p>{content}</p>
+                </div>
             )}
-
+    
+            {/* Post timestamp */}
             <span>{new Date(post.CreatedAt).toLocaleString()}</span>
-
-            <div className="like-info">
-                <p>{totalLikes} Likes {isLiked && ' - Liked'}</p>
-            </div>
-
+    
+            {/* Post actions (like and comment buttons) */}
             <div className="post-actions">
-                <button className={`like-button ${isLiked ? 'liked' : ''}`} onClick={handleLikeToggle}>
+                <button 
+                    className={`like-button ${isLiked ? 'liked' : ''}`} 
+                    onClick={handleLikeToggle}>
                     <FaThumbsUp /> {isLiked ? 'Unlike' : 'Like'}
                 </button>
-                <button onClick={() => setCommentsVisible(!commentsVisible)} className="comment-button">
+                <button 
+                    onClick={() => setCommentsVisible(!commentsVisible)} 
+                    className="comment-button">
                     <FaComment /> Comments
                 </button>
             </div>
-
+    
+            {/* Options menu */}
             <div className="post-menu" ref={optionsRef}>
                 <FaEllipsisH onClick={() => setShowOptions(!showOptions)} />
                 {showOptions && (
@@ -147,7 +153,8 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
                     </div>
                 )}
             </div>
-
+    
+            {/* Comments section */}
             {commentsVisible && (
                 <div className="comments-section">
                     <textarea
@@ -158,18 +165,13 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
                     <button onClick={handleCommentSubmit}>Comment</button>
                     {comments.map((comment) => (
                         <div key={comment.ID} className="comment-box">
-                            <p className="comment-name"><strong>{comment.FirstName} {comment.LastName}</strong></p>
+                            <p className="comment-name">
+                                {comment.FirstName} {comment.LastName}
+                            </p>
                             <p className="comment-content">{comment.Comment}</p>
                             <p className="comment-date">
-                                {new Date(comment.CreatedAt).toLocaleDateString('en-US', { 
-                                    year: '2-digit', 
-                                    month: '2-digit', 
-                                    day: '2-digit' 
-                                })} @ {new Date(comment.CreatedAt).toLocaleTimeString('en-US', { 
-                                    hour: '2-digit', 
-                                    minute: '2-digit', 
-                                    hour12: false 
-                                })}
+                                {new Date(comment.CreatedAt).toLocaleDateString()} @ 
+                                {new Date(comment.CreatedAt).toLocaleTimeString()}
                             </p>
                         </div>
                     ))}
@@ -178,5 +180,6 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
         </div>
     );
 };
+    
 
 export default PostStructure;
