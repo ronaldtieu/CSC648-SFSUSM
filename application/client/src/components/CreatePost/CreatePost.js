@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { FaPaperPlane } from 'react-icons/fa';
 import './CreatePost.css';
 
 import { createPost } from '../../service/postService';
@@ -19,7 +18,6 @@ const CreatePost = ({ onCreate }) => {
 
     try {
       // Call createPost to send the post content to the backend
-      // await createPost({ content: postContent });
       await createPost(postContent);
 
       console.log("Post created successfully!");
@@ -34,8 +32,6 @@ const CreatePost = ({ onCreate }) => {
     }
   };
 
-
-
   return (
     <div className="create-post">
       <section className="create-post-section">
@@ -45,8 +41,8 @@ const CreatePost = ({ onCreate }) => {
           onChange={handleChange}
           placeholder="Share with your fellow Gators..."
         />
-        <button className="post-button" title="Post" onClick={handlePost}>
-          <FaPaperPlane />
+        <button className="post-button" title="Share" onClick={handlePost}>
+          Share
         </button>
       </section>
     </div>
