@@ -82,7 +82,7 @@ const Profile = () => {
                                 key={post.ID}
                                 post={post}
                                 userId={userId}
-                                onDeletePost={loadUserPosts}
+                                // onDeletePost={loadUserPosts}
                                 onToggleLike={loadUserPosts}
                             />
                         ))
