@@ -38,11 +38,15 @@ const Profile = () => {
   }, []);
 
   if (loading) {
-    return <LoadingScreen />;  // Show loader while data is loading
+    return (
+      <div className="loading-container">
+        <LoadingScreen />
+      </div>
+    );
   }
 
   if (error) {
-    return <p>Error loading profile: {error}</p>;  // Display an error message if there's any
+    return <p>Error loading profile: {error}</p>;
   }
 
   return (
