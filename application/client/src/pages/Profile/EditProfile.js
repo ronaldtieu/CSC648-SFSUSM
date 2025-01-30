@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import gatorDefaultPic from '../../assets/gator_default_pic.png';
 import './EditProfile.css';
+import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 import { fetchUserProfile, updateUserProfile, fetchMajors, fetchMinors } from '../../service/profileService';
 
 const EditProfile = () => {
@@ -74,7 +75,11 @@ const EditProfile = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="loading-container">
+        <LoadingScreen />
+      </div>
+    );
   }
 
   if (error) {
@@ -142,7 +147,7 @@ const EditProfile = () => {
           <select name="minor" value={profileData.minor} onChange={handleChange}>
             <option value="">Select Minor</option>
             {minors.map((minor) => (
-              <option key={minor.ID} value={minor.MajorName}>
+              <option key={minor.ID} value={minor.MinorName}>
                 {minor.MinorName}
               </option>
             ))}
