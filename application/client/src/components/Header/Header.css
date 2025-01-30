@@ -72,18 +72,18 @@
 }
 
 .search-input {
-  padding: 8px 10px; /* Increased padding for height */
+  padding: 8px 10px; 
   border: 1px solid #ccc;
   border-radius: 4px 0 0 4px;
   font-size: 14px;
   width: 180px;
-  height: 36px; /* Set height for consistency */
+  height: 36px; 
   box-sizing: border-box;
 }
 
 .search-button {
-  padding: 0 12px; /* Adjust padding */
-  height: 36px; /* Match height with search bar */
+  padding: 0 12px; 
+  height: 36px; 
   background-color: #FCCB06;
   border: none;
   border-radius: 0 4px 4px 0;

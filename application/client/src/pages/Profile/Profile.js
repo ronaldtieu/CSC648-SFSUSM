@@ -68,7 +68,9 @@ const Profile = () => {
 
             {/* Loading Screen */}
             {loading ? (
-                <LoadingScreen />
+                <div className="loading-container">
+                    <LoadingScreen />
+                </div>
             ) : (
                 <div className="post-list">
                     {posts.length > 0 ? (
