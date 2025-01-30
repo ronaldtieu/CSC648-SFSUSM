@@ -4,104 +4,85 @@ import { fetchUserFeed } from '../../service/feedService';
 import { checkSession } from '../../service/profileService';
 import CreatePost from '../../components/CreatePost/CreatePost';
 import PostStructure from '../../components/PostStructure/PostStructure';
-import DominoLoader from '../../components/DominoLoader/DominoLoader'; // Optional if you use it
+import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 
 const Home = () => {
     const [feedPosts, setFeedPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [userId, setUserId] = useState(null);
+    const [loadingFeed, setLoadingFeed] = useState(true);
 
-    // Fetching session data to get the user ID
     useEffect(() => {
         const loadSessionData = async () => {
             try {
                 const sessionData = await checkSession();
-                if (sessionData && sessionData.user && sessionData.user.id) {
+                if (sessionData?.user?.id) {
                     setUserId(sessionData.user.id);
                 } else {
                     console.error("No user ID found in session.");
+                    setLoadingFeed(false);
                 }
             } catch (error) {
                 console.error("Failed to check session:", error);
+                setLoadingFeed(false);
             }
         };
         loadSessionData();
     }, []);
 
-    // Fetch user feed when userId is available
     useEffect(() => {
         if (userId) {
             loadUserFeed();
         }
     }, [userId]);
 
-    // Helper function to fetch user feed
-const loadUserFeed = async () => {
-    try {
-        console.log('Fetching user feed...'); // Log when fetching begins
-        const posts = await fetchUserFeed();
-        console.log('Fetched posts from backend:', posts); // Log the raw data received
+    const loadUserFeed = async () => {
+        setLoadingFeed(true);
+        try {
+            console.log('Fetching user feed...');
+            const posts = await fetchUserFeed();
+            console.log('Fetched posts from backend:', posts);
+            setFeedPosts(posts);
+        } catch (error) {
+            console.error('Error fetching feed:', error);
+        } finally {
+            setLoadingFeed(false);
+        }
+    };
 
-        const updatedPosts = await Promise.all(
-            posts.map(async (post) => {
-                console.log('Processing post:', post); // Log each post being processed
-                return { ...post }; // Directly map posts as received
-            })
-        );
-
-        console.log('Updated posts after processing:', updatedPosts); // Log processed posts
-        setFeedPosts(updatedPosts);
-        setLoading(false);
-    } catch (error) {
-        console.error('Error fetching feed:', error); // Log errors encountered
-        setLoading(false);
-    }
-};
-
-    // Rendering the home page
     return (
-      <div className="home">
-          <h1>Home</h1>
-  
-          <section className="post-section">
-              <CreatePost onCreate={loadUserFeed} />
-          </section>
-  
-          {loading ? (
-              <DominoLoader /> // Use a loader while fetching data
-          ) : (
-              <div className="post-list">
-                  {console.log('feedPosts before mapping:', feedPosts)} {/* Debug feedPosts */}
-                  {feedPosts.length > 0 ? (
-                      feedPosts.map((post, index) => {
-                          // Debug each post before rendering
-                          console.log(`Rendering post ${index}:`, post);
-  
-                          // Normalize post to ensure a valid ID is passed
-                          const normalizedPost = {
-                              ...post,
-                              ID: post.postId || post.ID || index, // Fallback to index if no ID exists
-                          };
-  
-                          // Debug normalized post
-                          console.log(`Normalized post ${index}:`, normalizedPost);
-  
-                          return (
-                              <PostStructure
-                                  key={normalizedPost.ID} // Unique key for React
-                                  post={normalizedPost} // Pass normalized post object
-                                  userId={userId}
-                                  onDeletePost={loadUserFeed}
-                              />
-                          );
-                      })
-                  ) : (
-                      <p>No posts available</p>
-                  )}
-              </div>
-          )}
-      </div>
-  );
+        <div className="home">
+            <h1>Home</h1>
+
+            {/* CreatePost Section */}
+            <section className="post-section">
+                <CreatePost onCreate={loadUserFeed} />
+            </section>
+
+            {/* Loading Screen or Feed */}
+            {loadingFeed ? (
+                <div className="loading-container">
+                    <LoadingScreen />
+                </div>
+            ) : (
+                <div className="feed-container">
+                    <div className="post-list">
+                        {feedPosts.length > 0 ? (
+                            feedPosts.map((post, index) => (
+                                <PostStructure
+                                    key={post.postId || index}
+                                    post={post}
+                                    userId={userId}
+                                    onDeletePost={loadUserFeed}
+                                />
+                            ))
+                        ) : (
+                            <p>No posts available</p>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default Home;

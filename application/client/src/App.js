@@ -13,34 +13,35 @@ import Marketplace from './pages/Marketplace/Marketplace';
 import DiscountsDeals from './pages/DiscountDeals/DiscountDeals';
 import LandingPage from './pages/LandingPage/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import { checkSession, fetchUserPosts } from './service/profileService'; 
-import ViewProfile from './pages/Profile/ViewProfile'
+import { checkSession } from './service/profileService'; 
+import ViewProfile from './pages/Profile/ViewProfile';
 
 import './App.css';
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(!!sessionStorage.getItem('accessToken'));
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   useEffect(() => {
     const checkUserSession = async () => {
       try {
-        const sessionData = await checkSession();  // Use checkSession from profileService
-
+        const sessionData = await checkSession();
         if (sessionData.success) {
           setIsLoggedIn(true);
           console.log('User is logged in:', sessionData.user);
         } else {
-          setIsLoggedIn(false);
           console.log('User is not logged in:', sessionData.message);
         }
       } catch (error) {
         console.error('Error checking session:', error);
-        setIsLoggedIn(false);
+      } finally {
+        setLoading(false); // Stop showing the loader
       }
     };
 
     checkUserSession();
   }, []);
+
 
   return (
     <Router>
@@ -49,7 +50,6 @@ const App = () => {
         <Route path="/" exact>
           {isLoggedIn ? <Redirect to="/home" /> : <LandingPage />}
         </Route>
-
 
         <ProtectedRoute path="/home" component={Home} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/profile" component={Profile} isLoggedIn={isLoggedIn} /> 
@@ -62,10 +62,9 @@ const App = () => {
         <ProtectedRoute path="/marketplace" component={Marketplace} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/discounts-deals" component={DiscountsDeals} isLoggedIn={isLoggedIn} />
 
- 
         <Redirect to={isLoggedIn ? "/home" : "/"} />
       </Switch>
-      {isLoggedIn && <Footer />}  
+      {isLoggedIn && <Footer />}
     </Router>
   );
 };

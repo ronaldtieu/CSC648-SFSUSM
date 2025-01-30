@@ -1,0 +1,78 @@
+background-color: #4b0082; /* Dark Purple Banner color */
+color: #FCCB06; /* Dark Gold for SFSU text */
+
+:root {
+--gradient: radial-gradient(at 5% 80%, #4b0082, #FCCB06 70%); /* Dark Purple to Dark Gold */
+}
+
+.loading-container {
+margin: 1.5rem auto;
+width: 100%;
+max-width: 600px;
+height: 300px;
+background: transparent !important;
+border: none;
+box-shadow: none;
+position: relative;
+overflow: hidden;
+}
+
+.movement-area {
+position: absolute;
+width: 520px;
+height: 200px;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+}
+
+.shape-1 {
+left: 410px;
+animation: shape-1-movement 2s infinite ease-in-out;
+}
+
+.shape-2 {
+left: 305px;
+animation: shape-2-movement 2s infinite ease-in-out;
+}
+
+.shape-3 {
+left: 200px;
+animation: shape-3-movement 2s infinite ease-in-out;
+}
+
+@keyframes shape-1-movement {
+from { background: #4b0082; } /* Dark Purple */
+50% { background: #C49A00; filter: blur(1.5px); } /* Muted Gold */
+to { background: #FCCB06; left: 200px; } /* Dark Gold */
+}
+
+@keyframes shape-2-movement {
+from { background: #4b0082; } /* Dark Purple */
+10% { height: 125px; background: #5A1E80; } /* Slightly Lighter Purple */
+20% { height: 150px; background: #8B5A00; } /* Brownish Gold */
+50% { filter: blur(1px); background: #C49A00; } /* Muted Gold */
+to { height: 100px; background: #FCCB06; } /* Dark Gold */
+}
+
+@keyframes shape-3-movement {
+from { background: #4b0082; } /* Dark Purple */
+10% { height: 150px; background: #5A1E80; } /* Slightly Lighter Purple */
+20% { height: 200px; left: 200px; background: #8B5A00; } /* Brownish Gold */
+50% { height: 200px; left: 305px; background: #C49A00; } /* Muted Gold */
+90% { height: 100px; background: #FCCB06; } /* Dark Gold */
+to { height: 100px; left: 410px; background: #FCCB06; } /* Dark Gold */
+}
+
+/* Keep Shapes Visible */
+.shape-1,
+.shape-2,
+.shape-3 {
+position: absolute;
+width: 100px;
+height: 100px;
+top: 50%;
+transform: translateY(-50%);
+border-radius: 50px;
+background: #4b0082; /* Start as Dark Purple */
+}

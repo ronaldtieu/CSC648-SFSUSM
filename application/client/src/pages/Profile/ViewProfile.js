@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import gatorDefaultPic from '../../assets/gator_default_pic.png';
 import './ViewProfile.css';
-import DominoLoader from '../../components/DominoLoader/DominoLoader';
+import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 import { fetchUserProfile } from '../../service/profileService'; 
 
 const Profile = () => {
@@ -38,7 +38,7 @@ const Profile = () => {
   }, []);
 
   if (loading) {
-    return <DominoLoader />;  // Show loader while data is loading
+    return <LoadingScreen />;  // Show loader while data is loading
   }
 
   if (error) {
