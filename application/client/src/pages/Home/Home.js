@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import './Home.css';
 import { fetchUserFeed } from '../../service/feedService';
 import { checkSession } from '../../service/profileService';
@@ -8,77 +8,101 @@ import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 
 const Home = () => {
     const [feedPosts, setFeedPosts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [userId, setUserId] = useState(null);
-    const [loadingFeed, setLoadingFeed] = useState(true);
 
+    // Fetch user session
     useEffect(() => {
         const loadSessionData = async () => {
             try {
                 const sessionData = await checkSession();
                 if (sessionData?.user?.id) {
+                    console.log("User ID found:", sessionData.user.id);
                     setUserId(sessionData.user.id);
                 } else {
                     console.error("No user ID found in session.");
-                    setLoadingFeed(false);
+                    setLoading(false);
                 }
             } catch (error) {
                 console.error("Failed to check session:", error);
-                setLoadingFeed(false);
+                setLoading(false);
             }
         };
         loadSessionData();
     }, []);
 
-    useEffect(() => {
-        if (userId) {
-            loadUserFeed();
-        }
-    }, [userId]);
+    // Fetch user feed and map data to match PostStructure expectations
+    const loadUserFeed = useCallback(async () => {
+        if (!userId) return;
 
-    const loadUserFeed = async () => {
-        setLoadingFeed(true);
+        setLoading(true);
         try {
             console.log('Fetching user feed...');
             const posts = await fetchUserFeed();
-            console.log('Fetched posts from backend:', posts);
-            setFeedPosts(posts);
+            console.log('Fetched posts:', posts);
+
+            if (Array.isArray(posts)) {
+                const formattedPosts = posts.map(post => ({
+                    ID: post.postId, 
+                    Content: post.content, 
+                    CreatedAt: post.createdAt, 
+                    FirstName: post.firstName, 
+                    LastName: post.lastName, 
+                    Source: post.source,
+                }));
+
+                setFeedPosts(formattedPosts);
+            } else {
+                console.error("Error: `posts` is not an array:", posts);
+                setFeedPosts([]);
+            }
         } catch (error) {
             console.error('Error fetching feed:', error);
+            setFeedPosts([]);
         } finally {
-            setLoadingFeed(false);
+            setLoading(false);
         }
-    };
+    }, [userId]);
+
+    // Load feed when userId changes
+    useEffect(() => {
+        loadUserFeed();
+    }, [userId, loadUserFeed]);
+
+    // Debugging: Log updates to feedPosts
+    useEffect(() => {
+        console.log("Updated feedPosts:", feedPosts);
+    }, [feedPosts]);
 
     return (
         <div className="home">
             <h1>Home</h1>
 
-            {/* CreatePost Section */}
             <section className="post-section">
                 <CreatePost onCreate={loadUserFeed} />
             </section>
 
-            {/* Loading Screen or Feed */}
-            {loadingFeed ? (
+            {loading ? (
                 <div className="loading-container">
                     <LoadingScreen />
                 </div>
             ) : (
-                <div className="feed-container">
-                    <div className="post-list">
-                        {feedPosts.length > 0 ? (
-                            feedPosts.map((post, index) => (
-                                <PostStructure
-                                    key={post.postId || index}
-                                    post={post}
-                                    userId={userId}
-                                    onDeletePost={loadUserFeed}
+                <div className="post-list">
+                    {feedPosts.length > 0 ? (
+                        feedPosts.map((post) => {
+                            console.log("Rendering PostStructure:", post);
+                            return (
+                                <PostStructure 
+                                    key={post.ID} 
+                                    post={post} 
+                                    userId={userId} 
+                                    onDeletePost={loadUserFeed} 
                                 />
-                            ))
-                        ) : (
-                            <p>No posts available</p>
-                        )}
-                    </div>
+                            );
+                        })
+                    ) : (
+                        <p>No posts available</p>
+                    )}
                 </div>
             )}
         </div>
