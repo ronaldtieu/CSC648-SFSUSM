@@ -13,7 +13,6 @@
     box-sizing: border-box;
 }
 
-/* Post author name at the top left */
 .post-author {
     font-size: 1.1em;
     font-weight: bold;
@@ -22,7 +21,6 @@
     padding: 0;
 }
 
-/* Align post content to the left */
 .post-content {
     font-size: 1em;
     color: #444;
@@ -35,21 +33,6 @@
     word-wrap: break-word;
 }
 
-/* Styling for post author name */
-.post-item h2 {
-    margin: 0;
-    font-size: 1.2em;
-    color: #333;
-}
-
-/* Styling for post content */
-.post-item p {
-    font-size: 1em;
-    color: #444;
-    margin-top: 10px;
-}
-
-/* Timestamp styling */
 .post-item span {
     font-size: 0.85em;
     color: #777;
@@ -57,21 +40,19 @@
     display: block;
 }
 
-/* Like information styling */
 .like-info {
     font-size: 0.9em;
     color: #666;
     margin-top: 10px;
 }
 
-/* Post actions (like, comment) styling */
 .post-actions {
     margin-top: 15px;
     display: flex;
     gap: 10px;
 }
 
-.like-button, .comment-button {
+button, .like-button, .comment-button {
     background-color: #4b0082;
     color: #fff;
     border: none;
@@ -81,7 +62,10 @@
     cursor: pointer;
 }
 
-/* Position the ellipsis (options button) */
+button:hover {
+    opacity: 0.9;
+}
+
 .post-menu {
     position: absolute;
     top: 10px;
@@ -91,7 +75,6 @@
     color: #888;
 }
 
-/* Dropdown options menu styling */
 .options-menu {
     position: absolute;
     right: 15px;
@@ -116,7 +99,10 @@
     color: #333;
 }
 
-/* Comments section styling */
+.options-menu button:last-child {
+    border-bottom: none;
+}
+
 .comments-section {
     margin-top: 15px;
     padding: 15px;
@@ -125,9 +111,8 @@
     border: 1px solid #e0e0e0;
 }
 
-.comments-section textarea {
+textarea {
     width: 100%;
-    height: 80px;
     padding: 10px;
     border: 1px solid #4b0082;
     border-radius: 10px;
@@ -137,31 +122,79 @@
     color: #333;
     background-color: #fff;
     margin-bottom: 10px;
+    box-sizing: border-box;
 }
 
-.comments-section button {
-    background-color: #4b0082;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
+.edit-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.edit-content textarea {
+    width: 95%;
+    max-width: 800px;
+    min-height: 120px;
+    font-size: 1.1em;
+    padding: 12px;
+}
+
+.edit-buttons {
+    display: flex;
+    justify-content: flex-start;
+    width: 95%;
+    max-width: 800px;
+    margin-top: 5px;
+}
+
+.edit-buttons button {
     padding: 8px 12px;
-    font-size: 0.9em;
+    border-radius: 5px;
     cursor: pointer;
+    margin-right: 10px;
 }
 
-/* Styling for each individual comment */
+.edit-buttons button:hover {
+    opacity: 0.9;
+}
+
+.edit-comment textarea {
+    min-height: 100px;
+    background-color: #f1f1fc;
+}
+
 .comment-box {
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 10px;
+    position: relative;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .comment-name {
     font-weight: bold;
     color: #4b0082;
     margin-bottom: 5px;
+}
+
+.edit-comment-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #4b0082;
+    font-size: 1em;
+    position: absolute;
+    top: 5px;
+    right: 10px;
 }
 
 .comment-content {
@@ -175,20 +208,16 @@
     color: #777;
 }
 
-/* Editable content box styling */
-.edit-content textarea {
-    width: 200%;
-    height: auto; /* Allows dynamic height */
-    min-height: 150px; /* Makes it as large as the post-item */
-    padding: 15px;
-    border: 1px solid #4b0082;
-    border-radius: 10px;
-    resize: vertical; /* Allows resizing */
-    outline: none;
-    font-family: 'Arial', sans-serif;
-    font-size: 1em;
-    color: #333;
-    background-color: #f1f1fc;
-    margin-bottom: 10px;
-    box-sizing: border-box;
+.edit-comment button {
+    margin-right: 5px;
+}
+
+.edit-comment button, .comments-section button {
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.edit-comment button:hover, .comments-section button:hover {
+    opacity: 0.9;
 }
