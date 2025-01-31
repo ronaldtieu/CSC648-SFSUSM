@@ -38,22 +38,23 @@ const Home = () => {
         setLoading(true);
         try {
             console.log('Fetching user feed...');
-            const posts = await fetchUserFeed();
-            console.log('Fetched posts:', posts);
+            const response = await fetchUserFeed();
+            console.log('Fetched posts:', response);
 
-            if (Array.isArray(posts)) {
-                const formattedPosts = posts.map(post => ({
+            if (Array.isArray(response)) {
+                const formattedPosts = response.map(post => ({
                     ID: post.postId, 
                     Content: post.content, 
                     CreatedAt: post.createdAt, 
                     FirstName: post.firstName, 
                     LastName: post.lastName, 
+                    UserID: post.userId, 
                     Source: post.source,
                 }));
 
                 setFeedPosts(formattedPosts);
             } else {
-                console.error("Error: `posts` is not an array:", posts);
+                console.error("Error: `posts` is not an array:", response);
                 setFeedPosts([]);
             }
         } catch (error) {
@@ -95,7 +96,7 @@ const Home = () => {
                                 <PostStructure 
                                     key={post.ID} 
                                     post={post} 
-                                    userId={userId} 
+                                    userId={userId}  // Pass the logged-in userId
                                     onDeletePost={loadUserFeed} 
                                 />
                             );
