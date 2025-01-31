@@ -18,18 +18,22 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
     const [commentsVisible, setCommentsVisible] = useState(false);
     const [commentContent, setCommentContent] = useState('');
     const [editMode, setEditMode] = useState(false);
-    const [content, setContent] = useState(post.Content); // New state for post content
-    const [editedContent, setEditedContent] = useState(post.Content);
+    const [content, setContent] = useState(post?.Content || '');
+    const [editedContent, setEditedContent] = useState(post?.Content || '');
     const [showOptions, setShowOptions] = useState(false);
 
     const optionsRef = useRef(null);
+    
+    console.log("Post object:", post);  // Debugging to see if undefined
+    const isUserPost = Number(post?.UserID) === Number(userId);
+    console.log("isUserPost:", isUserPost, "postUserId:", post?.UserID, "userId:", userId);
 
-    // Initial load of likes and comments for each post
     useEffect(() => {
         const loadPostData = async () => {
+            if (!post?.ID) return; // Ensure post.ID is available
             try {
                 const { likes, totalLikes } = await getPostLikes(post.ID);
-                setIsLiked(likes.some(user => user.ID === userId));
+                setIsLiked(likes.some(user => Number(user.ID) === Number(userId)));
                 setTotalLikes(totalLikes);
 
                 const fetchedComments = await getPostComments(post.ID);
@@ -49,9 +53,8 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [post.ID, userId]);
+    }, [post?.ID, userId]);
 
-    // Toggle like
     const handleLikeToggle = async () => {
         try {
             if (isLiked) {
@@ -67,7 +70,6 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
         }
     };
 
-    // Add a comment
     const handleCommentSubmit = async () => {
         try {
             if (commentContent.trim()) {
@@ -81,35 +83,31 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
         }
     };
 
-    // Save edited post content and update locally
     const handleEditPost = async () => {
         try {
             await editPost(post.ID, editedContent);
             setEditMode(false);
-            setContent(editedContent); // Update the content state
+            setContent(editedContent);
         } catch (error) {
             console.error('Error editing post:', error);
         }
     };
 
-    // Delete post
     const handleDelete = async () => {
         try {
             await deletePost(post.ID);
-            onDeletePost(post.ID); // Notify parent component
+            onDeletePost(post.ID);
         } catch (error) {
             console.error('Error deleting post:', error);
         }
     };
-    
+
     return (
         <div className="post-item">
-            {/* Post creator's name in the top-left corner */}
             <div className="post-author">
-                <p>{post.FirstName} {post.LastName}</p>
+                <p>{post?.FirstName} {post?.LastName}</p>
             </div>
-    
-            {/* Post content aligned to the left */}
+
             {editMode ? (
                 <div className="edit-content">
                     <textarea
@@ -125,11 +123,9 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
                     <p>{content}</p>
                 </div>
             )}
-    
-            {/* Post timestamp */}
-            <span>{new Date(post.CreatedAt).toLocaleString()}</span>
-    
-            {/* Post actions (like and comment buttons) */}
+
+            <span>{post?.CreatedAt ? new Date(post.CreatedAt).toLocaleString() : ''}</span>
+
             <div className="post-actions">
                 <button 
                     className={`like-button ${isLiked ? 'liked' : ''}`} 
@@ -142,19 +138,20 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
                     <FaComment /> Comments
                 </button>
             </div>
-    
-            {/* Options menu */}
-            <div className="post-menu" ref={optionsRef}>
-                <FaEllipsisH onClick={() => setShowOptions(!showOptions)} />
-                {showOptions && (
-                    <div className="options-menu">
-                        <button onClick={() => setEditMode(true)}>Edit Post</button>
-                        <button onClick={handleDelete}>Delete Post</button>
-                    </div>
-                )}
-            </div>
-    
-            {/* Comments section */}
+
+            {/* Options menu: Only visible if the post belongs to the user */}
+            {isUserPost && (
+                <div className="post-menu" ref={optionsRef}>
+                    <FaEllipsisH onClick={() => setShowOptions(!showOptions)} />
+                    {showOptions && (
+                        <div className="options-menu">
+                            <button onClick={() => setEditMode(true)}>Edit Post</button>
+                            <button onClick={handleDelete}>Delete Post</button>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {commentsVisible && (
                 <div className="comments-section">
                     <textarea
@@ -180,6 +177,5 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
         </div>
     );
 };
-    
 
 export default PostStructure;

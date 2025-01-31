@@ -48,36 +48,27 @@ exports.createPost = (req, res) => {
 };
 
 // Get all user's post
-exports.getUserPosts = (req, res ) => {
+exports.getUserPosts = (req, res) => {
     const userId = req.userId;
 
     if (!userId) {
-        return res.json({
-            success: false,
-            message: 'Error with userId',
-        });
+        return res.json({ success: false, message: 'Error with userId' });
     }
 
     const query = `
-        SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Users.FirstName, Users.LastName
+        SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Posts.UserID, Users.FirstName, Users.LastName
         FROM Posts
         JOIN Users ON Posts.UserID = Users.ID
         WHERE Posts.UserID = ?
         ORDER BY Posts.CreatedAt DESC
     `;
-    
+
     db.query(query, [userId], (err, results) => {
         if (err) {
             console.error('Error with user post query: ', err);
-            return res.json({
-                success: false,
-                message: 'Failed to retrieve posts. Please try again later.',
-            });
+            return res.json({ success: false, message: 'Failed to retrieve posts.' });
         }
-        res.json({
-            success: true,
-            posts: results,
-        });
+        res.json({ success: true, posts: results });
     });
 };
 
