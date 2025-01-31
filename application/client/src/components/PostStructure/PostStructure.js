@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { likePost, unlikePost, getPostLikes, createCommentOnPost, deletePost, editPost, getPostComments } from '../../service/postService';
+import { likePost, unlikePost, getPostLikes, createCommentOnPost, deletePost, editPost, getPostComments, editComment } from '../../service/postService';
 import { FaThumbsUp, FaComment, FaEllipsisH } from 'react-icons/fa';
 import './PostStructure.css';
 
