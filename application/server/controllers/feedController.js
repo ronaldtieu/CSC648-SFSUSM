@@ -17,10 +17,10 @@ exports.getUserFeed = (req, res) => {
             p.ID AS postId, 
             p.Content AS content, 
             p.CreatedAt AS createdAt, 
+            p.UserID AS userId, 
             u.FirstName AS firstName, 
             u.LastName AS lastName, 
             CASE 
-                -- Determine the source of the post
                 WHEN p.UserID = ? THEN 'user'       -- Posts from the user themselves
                 WHEN p.GroupID IS NOT NULL THEN 'group' -- Posts from groups the user is a member of
                 ELSE 'friend'                      -- Posts from the user's friends
@@ -34,10 +34,10 @@ exports.getUserFeed = (req, res) => {
         LEFT JOIN GroupMembers gm ON gm.UserID = p.UserID
         WHERE 
             p.UserID = ? -- Fetch the user's own posts
-            OR f.ID IS NOT NULL -- Fetch posts from friends (via Friends table)
+            OR f.ID IS NOT NULL -- Fetch posts from friends
             OR gm.GroupID IN (SELECT GroupID FROM GroupMembers WHERE UserID = ?) -- Fetch posts from groups the user is in
         ORDER BY p.CreatedAt DESC
-        LIMIT 50; -- Fetch only the latest 50 posts for efficiency
+        LIMIT 50;
     `;
 
     db.query(getUserFeedQuery, [userId, userId, userId, userId, userId], (err, results) => {
@@ -51,7 +51,7 @@ exports.getUserFeed = (req, res) => {
 
         res.json({
             success: true,
-            feed: results,
+            feed: results, 
         });
     });
 };
