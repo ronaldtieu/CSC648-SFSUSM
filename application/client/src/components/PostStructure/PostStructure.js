@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-    likePost, 
-    unlikePost, 
-    getPostLikes, 
-    createCommentOnPost, 
-    deletePost, 
-    editPost, 
-    getPostComments 
-} from '../../service/postService';
+import { likePost, unlikePost, getPostLikes, createCommentOnPost, deletePost, editPost, getPostComments } from '../../service/postService';
 import { FaThumbsUp, FaComment, FaEllipsisH } from 'react-icons/fa';
 import './PostStructure.css';
 
@@ -24,15 +16,16 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
 
     const optionsRef = useRef(null);
     
-    console.log("Post object:", post);  // Debugging to see if undefined
+    console.log("Post object:", post);
     const isUserPost = Number(post?.UserID) === Number(userId);
     console.log("isUserPost:", isUserPost, "postUserId:", post?.UserID, "userId:", userId);
 
     useEffect(() => {
         const loadPostData = async () => {
-            if (!post?.ID) return; // Ensure post.ID is available
+            if (!post?.ID) return;
             try {
                 const { likes, totalLikes } = await getPostLikes(post.ID);
+                console.log(`Post ${post.ID} has ${totalLikes} likes`);
                 setIsLiked(likes.some(user => Number(user.ID) === Number(userId)));
                 setTotalLikes(totalLikes);
 
@@ -59,7 +52,7 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
         try {
             if (isLiked) {
                 await unlikePost(post.ID);
-                setTotalLikes(prev => prev - 1);
+                setTotalLikes(prev => Math.max(prev - 1, 0)); // Prevents negative likes
             } else {
                 await likePost(post.ID);
                 setTotalLikes(prev => prev + 1);
@@ -130,7 +123,7 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
                 <button 
                     className={`like-button ${isLiked ? 'liked' : ''}`} 
                     onClick={handleLikeToggle}>
-                    <FaThumbsUp /> {isLiked ? 'Unlike' : 'Like'}
+                    <FaThumbsUp /> {isLiked ? 'Unlike' : 'Like'} ({totalLikes})
                 </button>
                 <button 
                     onClick={() => setCommentsVisible(!commentsVisible)} 
