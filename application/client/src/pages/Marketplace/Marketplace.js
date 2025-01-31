@@ -2,7 +2,6 @@ import React from 'react';
 import './Marketplace.css';
 
 const Marketplace = () => {
-  // Sample product data, replace with actual data fetching logic
   const products = [
     { id: 1, name: 'Product 1', description: 'Description of Product 1', price: '$10', seller: 'Gator Student 1', imageUrl: 'https://www.apple.com/newsroom/images/product/watch/lifestyle/Apple_announces-watch-se_09152020_big.jpg.large.jpg' },
     { id: 2, name: 'Product 2', description: 'Description of Product 2', price: '$20', seller: 'Gator Student 2', imageUrl: 'https://m.media-amazon.com/images/I/615SQnkivIS._AC_UY1000_.jpg' },

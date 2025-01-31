@@ -31,7 +31,7 @@ const Home = () => {
         loadSessionData();
     }, []);
 
-    // Fetch user feed and map data to match PostStructure expectations
+
     const loadUserFeed = useCallback(async () => {
         if (!userId) return;
 
@@ -65,12 +65,10 @@ const Home = () => {
         }
     }, [userId]);
 
-    // Load feed when userId changes
     useEffect(() => {
         loadUserFeed();
     }, [userId, loadUserFeed]);
 
-    // Debugging: Log updates to feedPosts
     useEffect(() => {
         console.log("Updated feedPosts:", feedPosts);
     }, [feedPosts]);
@@ -96,7 +94,7 @@ const Home = () => {
                                 <PostStructure 
                                     key={post.ID} 
                                     post={post} 
-                                    userId={userId}  // Pass the logged-in userId
+                                    userId={userId}  
                                     onDeletePost={loadUserFeed} 
                                 />
                             );

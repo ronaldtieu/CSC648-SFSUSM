@@ -24,7 +24,7 @@ const Profile = () => {
     const loadUserProfile = async () => {
       try {
         const userData = await fetchUserProfile();
-        console.log('Fetched user profile data:', userData);  // Debugging line
+        // console.log('Fetched user profile data:', userData);  // Debugging line
         setProfile(userData);
       } catch (err) {
         console.error('Error loading profile:', err);

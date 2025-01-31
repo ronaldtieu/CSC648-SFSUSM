@@ -1,12 +1,12 @@
 /* Notification Dropdown Styling */
 .notification-dropdown {
   position: absolute;
-  top: 100%; /* Position directly below the button */
-  left: 50%; /* Start positioning from the center of the icon */
-  transform: translateX(-50%); /* Shift dropdown left by half its width to center it */
+  top: 100%; 
+  left: 50%; 
+  transform: translateX(-50%); 
   background-color: white;
   color: #333;
-  width: 200px; /* Set width of the dropdown */
+  width: 200px;
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 1;
   border-radius: 4px;

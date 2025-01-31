@@ -10,7 +10,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh; /* Ensure the form is centered vertically */
+  height: 100vh;
 }
 
 .profile-info {
@@ -63,7 +63,7 @@
 
 .edit-profile-form {
   width: 100%;
-  max-width: 400px; /* Ensure the form doesn't stretch too wide */
+  max-width: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -82,33 +82,33 @@
 
 .edit-profile-form input,
 .edit-profile-form select {
-  width: 100%; /* Match the input fields */
-  padding: 8px; /* Same padding as input fields */
-  border-radius: 4px; /* Rounded corners like input fields */
-  border: 1px solid #ccc; /* Same border as input fields */
-  font-size: 1rem; /* Same font size */
-  box-sizing: border-box; /* Ensure consistent sizing */
-  background-color: #ffffff; /* Set to white to match the input fields */
+  width: 100%; 
+  padding: 8px; 
+  border-radius: 4px; 
+  border: 1px solid #ccc; 
+  font-size: 1rem; 
+  box-sizing: border-box; 
+  background-color: #ffffff; 
 }
 
-/* Ensure that the email and student ID fields are greyed out properly */
+
 .edit-profile-form input.readonly-input {
-  background-color: #e9ecef; /* Greyed out background for read-only inputs */
-  cursor: not-allowed; /* Not editable */
+  background-color: #e9ecef; 
+  cursor: not-allowed; 
 }
 
 .edit-profile-form button {
   padding: 10px 20px;
   border: none;
   border-radius: 4px;
-  background-color: #4b0082; /* SFSU purple */
+  background-color: #4b0082;
   color: white;
   font-size: 1rem;
   cursor: pointer;
   margin-top: 20px;
-  align-self: center; /* Center the button */
+  align-self: center; 
 }
 
 .edit-profile-form button:hover {
-  background-color: #3a0068; /* Darken button on hover */
+  background-color: #3a0068; 
 }

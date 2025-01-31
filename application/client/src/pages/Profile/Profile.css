@@ -27,11 +27,11 @@
   letter-spacing: -0.5px;
 }
 
-/* View Profile Button - Purple Background & Yellow Text */
+
 .view-profile-button {
-  background: #4b0082; /* Dark Purple */
-  border: 2px solid #4b0082; /* Dark Purple Border */
-  color: #FCCB06; /* Yellow Text */
+  background: #4b0082; 
+  border: 2px solid #4b0082;
+  color: #FCCB06; 
   padding: 0.5rem 1.5rem;
   border-radius: 25px;
   text-decoration: none;
@@ -43,8 +43,8 @@
 }
 
 .view-profile-button:hover {
-  background: #800080; /* Slightly Brighter Purple */
-  border-color: #FCCB06; /* Yellow Border */
+  background: #800080; 
+  border-color: #FCCB06;
   transform: translateY(-1px);
 }
 

@@ -32,10 +32,10 @@ const EditProfile = () => {
         const majorsData = await fetchMajors();
         const minorsData = await fetchMinors();
 
-        console.log("Fetched Majors:", majorsData);  // Debugging output
-        console.log("Fetched Minors:", minorsData);  // Debugging output
+        // console.log("Fetched Majors:", majorsData);  // Debugging output
+        // console.log("Fetched Minors:", minorsData);  // Debugging output
 
-        setMajors(majorsData || []);  // Ensure we set an empty array if no data
+        setMajors(majorsData || []); 
         setMinors(minorsData || []);
       } catch (err) {
         console.error('Error loading profile for editing:', err);

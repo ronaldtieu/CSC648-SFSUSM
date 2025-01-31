@@ -52,7 +52,7 @@
 }
 
 .control-button:not(:last-child) {
-  margin-right: -5px; /* Adjust to remove space between buttons */
+  margin-right: -5px; 
 }
 
 .control-button:hover {
@@ -111,7 +111,7 @@
 .product-seller {
   font-size: 0.9em;
   color: #777;
-  margin-top: -10px; /* Adjust margin to align with the product name */
+  margin-top: -10px; 
 }
 
 .product-description {
@@ -121,7 +121,7 @@
 
 .product-price {
   font-size: 1.2em;
-  color: #4b0082; /* Dark Purple */
+  color: #4b0082; 
   margin: 10px 0;
 }
 
@@ -131,7 +131,7 @@
   font-size: 1em;
   font-weight: bold;
   color: white;
-  background-color: #4b0082; /* Dark Purple */
+  background-color: #4b0082; 
   border: none;
   border-radius: 30px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
