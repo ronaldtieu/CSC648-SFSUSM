@@ -3,51 +3,37 @@ const API_BASE_URL = 'http://localhost:4000/posts';
 
 export const fetchUserPosts = async () => {
     try {
-        console.log('Attempting to fetch user posts from /posts/getUserPosts endpoint...');
-  
         const response = await fetch(`${API_BASE_URL}/getUserPosts`, {
             method: 'GET',
-            credentials: 'include', 
+            credentials: 'include',
         });
-  
+
         if (!response.ok) {
-            throw new Error(`Failed to fetch user posts. Received HTTP status: ${response.status}. Please check if the server is running and the endpoint is correct.`);
+            throw new Error(`Failed to fetch user posts. Status: ${response.status}`);
         }
-  
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();  // Attempt to get the text response
-            console.error('Received non-JSON response:', text);  // Log the response for debugging
-            throw new Error('The response format was not JSON as expected. Please ensure the server is returning JSON.');
-        }
-  
+
         const data = await response.json();
-        console.log('Successfully fetched user posts:', data);
-  
+
         if (!data.success) {
-            throw new Error('Failed to fetch user posts. Please try again.');
+            throw new Error('Failed to fetch user posts.');
         }
-  
-        return data.posts; 
+
+        return data.posts; // Includes UserID now
     } catch (error) {
-        console.error('An error occurred while fetching user posts:', error.message);
-        throw error; 
+        console.error('Error fetching user posts:', error.message);
+        throw error;
     }
-  };
+};
 
 
   // create post
-export const createPost = async (content) => {
+  export const createPost = async (content) => {
     try {
-        // console.log('Content being sent:', content);
-
         const response = await fetch(`${API_BASE_URL}/createPost`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',  
-            body: JSON.stringify({ content }), 
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ content }),
         });
 
         if (!response.ok) {
@@ -59,12 +45,13 @@ export const createPost = async (content) => {
             throw new Error('Failed to create post.');
         }
 
-        return data.message;
+        return { message: data.message, postId: data.postId, userId: data.userId }; // Includes userId
     } catch (error) {
         console.error('Error creating post:', error);
         throw error;
     }
 };
+
 
 // like post
 export const likePost = async (postId) => {
