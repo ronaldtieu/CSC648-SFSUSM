@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-    likePost, unlikePost, getPostLikes, createCommentOnPost, 
-    deletePost, editPost, getPostComments, editComment, deleteComment 
-} from '../../service/postService';
-import { FaThumbsUp, FaComment, FaEllipsisH, FaEdit, FaTrash } from 'react-icons/fa';
+import { likePost, unlikePost, getPostLikes, editPost, deletePost } from '../../service/postService';
+import { FaThumbsUp, FaComment, FaEllipsisH } from 'react-icons/fa';
+import CommentSection from '../CommentSection/CommentSection'; 
 import './PostStructure.css';
 
 // Hook for fetching and managing post data
@@ -17,10 +15,6 @@ const usePostData = (postId, userId) => {
             const { likes, totalLikes } = await getPostLikes(postId);
             setIsLiked(likes.some(user => Number(user.ID) === Number(userId)));
             setTotalLikes(totalLikes);
-
-            const fetchedComments = await getPostComments(postId);
-            console.log("Fetched Comments:", fetchedComments); 
-            setComments(fetchedComments);
         } catch (error) {
             console.error('Error loading post data:', error);
         }
@@ -47,7 +41,7 @@ const useClickOutside = (ref, callback) => {
 };
 
 // Editable text input component
-const EditableContent = ({ initialContent, onSave, onCancel, onDelete }) => {
+const EditableContent = ({ initialContent, onSave, onCancel }) => {
     const [content, setContent] = useState(initialContent);
 
     return (
@@ -61,74 +55,12 @@ const EditableContent = ({ initialContent, onSave, onCancel, onDelete }) => {
                 <button className="save-button" onClick={() => onSave(content)}>Save</button>
                 <button className="cancel-button" onClick={onCancel}>Cancel</button>
             </div>
-            <button className="delete-button" onClick={onDelete}>
-                <FaTrash /> Delete
-            </button>
         </div>
     );
 };
 
-// Component for rendering individual comments
-const CommentItem = ({ 
-    comment, 
-    userId, 
-    editingCommentId, 
-    onEditComment, 
-    onDeleteComment, 
-    onCancelEdit, 
-    onStartEdit 
-}) => {
-    const isUserComment = Number(comment.userId) === Number(userId);
-
-    return (
-        <div className="comment-box">
-            <div className="comment-header">
-                <p className="comment-name">{comment.firstName} {comment.lastName}</p>
-            </div>
-
-            {editingCommentId === comment.id ? (
-                <div className="edit-container">
-                    <textarea
-                        value={comment.content}
-                        onChange={(e) => onEditComment(comment.id, e.target.value)}
-                        placeholder="Edit your comment..."
-                    />
-                    <div className="edit-buttons">
-                        <button className="save-button" onClick={() => onEditComment(comment.id, comment.content)}>Save</button>
-                        <button className="cancel-button" onClick={onCancelEdit}>Cancel</button>
-                    </div>
-                    {/* Delete button moved to bottom-right */}
-                    <button className="comment-trash-icon" onClick={() => onDeleteComment(comment.id)}>
-                        <FaTrash />
-                    </button>
-                </div>
-            ) : (
-                <>
-                    <p className="comment-content">{comment.content}</p>
-                    <div className="comment-footer">
-                        <p className="comment-date">
-                            {new Date(comment.createdAt).toLocaleDateString()} @ 
-                            {new Date(comment.createdAt).toLocaleTimeString()}
-                        </p>
-                        {isUserComment && (
-                            <div className="comment-actions">
-                                <button 
-                                    className="edit-comment-button" 
-                                    onClick={() => onStartEdit(comment.id)}
-                                >
-                                    <FaEdit /> Edit
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </>
-            )}
-        </div>
-    );
-};
-
-// Post options dropdown menu
-const PostOptions = ({ onEdit, onDelete }) => {
+// Post options dropdown menu (modified to signal delete confirmation to the parent)
+const PostOptions = ({ onEdit, onShowDeleteConfirm }) => {
     const [showOptions, setShowOptions] = useState(false);
     const optionsRef = useRef(null);
     useClickOutside(optionsRef, () => setShowOptions(false));
@@ -139,7 +71,7 @@ const PostOptions = ({ onEdit, onDelete }) => {
             {showOptions && (
                 <div className="options-menu">
                     <button onClick={onEdit}>Edit Post</button>
-                    <button onClick={onDelete}>Delete Post</button>
+                    <button onClick={onShowDeleteConfirm}>Delete Post</button>
                 </div>
             )}
         </div>
@@ -148,14 +80,14 @@ const PostOptions = ({ onEdit, onDelete }) => {
 
 const PostStructure = ({ post, userId, onDeletePost }) => {
     const [commentsVisible, setCommentsVisible] = useState(false);
-    const [commentContent, setCommentContent] = useState('');
     const [editMode, setEditMode] = useState(false);
     const [editedContent, setEditedContent] = useState(post?.Content || '');
-    const [editingCommentId, setEditingCommentId] = useState(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     
     const isUserPost = Number(post?.UserID) === Number(userId);
     const postData = usePostData(post?.ID, userId);
 
+    // Handle like/unlike
     const handleLikeToggle = async () => {
         try {
             const action = postData.isLiked ? unlikePost : likePost;
@@ -167,35 +99,41 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
         }
     };
 
-    const handleCommentSubmit = async () => {
-        if (!commentContent.trim()) return;
+    // Handle post edit
+    const handleEditPost = async (newContent) => {
         try {
-            await createCommentOnPost(post.ID, commentContent);
-            postData.loadPostData();
-            setCommentContent('');
+            await editPost(post.ID, newContent);
+            setEditedContent(newContent); // Update UI
+            setEditMode(false);
         } catch (error) {
-            console.error('Error adding comment:', error);
+            console.error('Error editing post:', error);
         }
     };
 
-    const handleEditComment = async (commentId, content) => {
+    // Handle post delete
+    const handleDeletePost = async () => {
         try {
-            await editComment(commentId, content);
-            postData.loadPostData();
-            setEditingCommentId(null);
+            await deletePost(post.ID);
+            onDeletePost(post.ID); // Remove post from UI
         } catch (error) {
-            console.error('Error editing comment:', error);
+            console.error('Error deleting post:', error);
         }
     };
 
-    const handleDeleteComment = async (commentId) => {
-        try {
-            await deleteComment(commentId);
-            postData.loadPostData();
-        } catch (error) {
-            console.error('Error deleting comment:', error);
-        }
-    };
+    // If delete confirmation is active, replace entire post content with confirmation view
+    if (showDeleteConfirm) {
+        return (
+            <div className="post-item">
+                <div className="delete-confirm-popup">
+                    <p>Are you sure you want to delete this post?</p>
+                    <div className="delete-buttons">
+                        <button className="confirm-delete" onClick={handleDeletePost}>Yes</button>
+                        <button className="cancel-delete" onClick={() => setShowDeleteConfirm(false)}>No</button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="post-item">
@@ -207,7 +145,7 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
                 {isUserPost && (
                     <PostOptions
                         onEdit={() => setEditMode(true)}
-                        onDelete={onDeletePost}
+                        onShowDeleteConfirm={() => setShowDeleteConfirm(true)}
                     />
                 )}
             </div>
@@ -215,9 +153,8 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
             {editMode ? (
                 <EditableContent
                     initialContent={editedContent}
-                    onSave={(newContent) => editPost(post.ID, newContent)}
+                    onSave={handleEditPost}
                     onCancel={() => setEditMode(false)}
-                    onDelete={() => onDeletePost(post.ID)}
                 />
             ) : (
                 <div className="post-content">
@@ -230,22 +167,18 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
                     <FaThumbsUp /> {postData.isLiked ? 'Unlike' : 'Like'} ({postData.totalLikes})
                 </button>
                 <button onClick={() => setCommentsVisible(!commentsVisible)} className="comment-button">
-                    <FaComment /> Comments ({postData.comments.length})
+                    <FaComment /> Comments
                 </button>
             </div>
 
-            {commentsVisible && postData.comments.map(comment => (
-                <CommentItem
-                    key={comment.id}
-                    comment={comment}
+            {commentsVisible && (
+                <CommentSection
+                    postId={post?.ID}
                     userId={userId}
-                    editingCommentId={editingCommentId}
-                    onEditComment={handleEditComment}
-                    onDeleteComment={handleDeleteComment}
-                    onCancelEdit={() => setEditingCommentId(null)}
-                    onStartEdit={setEditingCommentId}
+                    comments={postData.comments}
+                    loadPostData={postData.loadPostData}
                 />
-            ))}
+            )}
         </div>
     );
 };
