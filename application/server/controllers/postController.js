@@ -276,13 +276,20 @@ exports.getPostComments = (req, res) => {
     const { postId } = req.params;
 
     if (!postId) {
-        return res.json ({
+        return res.json({
             success: false,
             message: 'Error with PostId when getting comments from post',
         });
     }
+
     const query = `
-    SELECT Comments.ID, Comments.Content AS Comment, Comments.CreatedAt, Users.FirstName, Users.LastName
+    SELECT 
+        Comments.ID, 
+        Comments.Content AS Comment, 
+        Comments.CreatedAt, 
+        Comments.UserID, 
+        Users.FirstName, 
+        Users.LastName
     FROM Comments
     JOIN Users ON Comments.UserID = Users.ID
     WHERE Comments.PostId = ?
@@ -290,18 +297,25 @@ exports.getPostComments = (req, res) => {
 
     db.query(query, [postId], (err, results) => {
         if (err) {
-            console.error('Error retreiving comments: ', err);
-            return res.json ({
+            console.error('Error retrieving comments:', err);
+            return res.json({
                 success: false,
                 message: 'Query error when getting comments for post.'
             });
         }
+
         res.json({
             success: true,
-            comments: results,
+            comments: results.map(comment => ({
+                id: comment.ID,
+                userId: comment.UserID, 
+                firstName: comment.FirstName,
+                lastName: comment.LastName,
+                content: comment.Comment,
+                createdAt: comment.CreatedAt,
+            })),
         });
     });
-
 };
 
 // getting specific post 

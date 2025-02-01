@@ -109,60 +109,8 @@ button:hover {
     background-color: #f1f1fc;
     border-radius: 8px;
     border: 1px solid #e0e0e0;
-}
-
-textarea {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #4b0082;
-    border-radius: 10px;
-    resize: none;
-    font-family: 'Arial', sans-serif;
-    font-size: 1em;
-    color: #333;
-    background-color: #fff;
-    margin-bottom: 10px;
-    box-sizing: border-box;
-}
-
-.edit-content {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.edit-content textarea {
-    width: 95%;
-    max-width: 800px;
-    min-height: 120px;
-    font-size: 1.1em;
-    padding: 12px;
-}
-
-.edit-buttons {
-    display: flex;
-    justify-content: flex-start;
-    width: 95%;
-    max-width: 800px;
-    margin-top: 5px;
-}
-
-.edit-buttons button {
-    padding: 8px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-right: 10px;
-}
-
-.edit-buttons button:hover {
-    opacity: 0.9;
-}
-
-.edit-comment textarea {
-    min-height: 100px;
-    background-color: #f1f1fc;
+    max-width: 750px; 
 }
 
 .comment-box {
@@ -172,6 +120,21 @@ textarea {
     padding: 10px;
     margin-bottom: 10px;
     position: relative;
+    width: 95%;
+    max-width: 700px;
+    word-wrap: break-word;
+}
+
+.edit-comment textarea {
+    min-height: 80px;
+    max-height: 250px; 
+    overflow-y: auto;
+    background-color: #f1f1fc;
+    width: 100%;
+    resize: vertical;
+    border: 1px solid #4b0082;
+    padding: 8px;
+    border-radius: 5px;
 }
 
 .comment-header {
@@ -186,21 +149,11 @@ textarea {
     margin-bottom: 5px;
 }
 
-.edit-comment-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #4b0082;
-    font-size: 1em;
-    position: absolute;
-    top: 5px;
-    right: 10px;
-}
-
 .comment-content {
     font-size: 1em;
     color: #444;
     margin-bottom: 5px;
+    word-break: break-word;
 }
 
 .comment-date {
@@ -208,8 +161,30 @@ textarea {
     color: #777;
 }
 
-.edit-comment button {
-    margin-right: 5px;
+
+.trash-icon {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: red;
+    font-size: 1.2em;
+}
+
+.trash-icon:hover {
+    opacity: 0.7;
+}
+
+.edit-buttons button {
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.edit-buttons button:hover {
+    opacity: 0.9;
 }
 
 .edit-comment button, .comments-section button {
@@ -220,4 +195,52 @@ textarea {
 
 .edit-comment button:hover, .comments-section button:hover {
     opacity: 0.9;
+}
+
+.edit-container {
+    width: 100%;
+    max-width: 750px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #f9f9f9;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    position: relative; 
+}
+
+.edit-container textarea {
+    width: 100%;
+    min-height: 120px;
+    max-height: 250px;
+    font-size: 1em;
+    padding: 10px;
+    border: 1px solid #4b0082;
+    border-radius: 5px;
+    resize: vertical;
+    background-color: #fff;
+}
+
+.edit-buttons {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.comment-trash-icon {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: red;
+    font-size: 1.2em;
+}
+
+.comment-trash-icon:hover {
+    opacity: 0.7;
 }

@@ -200,13 +200,22 @@ export const getPostComments = async (postId) => {
         }
 
         const data = await response.json();
-        if (!data.success) {
+        if (!data.success || !Array.isArray(data.comments)) {
             throw new Error('Failed to get post comments.');
         }
 
-        console.log(`Comments for post ${postId}:`, data.comments);  
+        const formattedComments = data.comments.map(comment => ({
+            id: comment.id,
+            userId: comment.userId,  
+            firstName: comment.firstName,
+            lastName: comment.lastName,
+            content: comment.content,
+            createdAt: comment.createdAt,
+        }));
 
-        return data.comments;  
+        console.log(`Comments for post ${postId}:`, formattedComments);  
+
+        return formattedComments;  
     } catch (error) {
         console.error('Error getting post comments:', error);
         throw error;
