@@ -33,6 +33,7 @@ const CommentItem = ({
                         <button className="save-button" onClick={() => onEditComment(comment.id, editableText)}>Save</button>
                         <button className="cancel-button" onClick={onCancelEdit}>Cancel</button>
                     </div>
+                    {/* Delete button appears in edit mode */}
                     <button className="comment-trash-icon" onClick={() => onDeleteComment(comment.id)}>
                         <FaTrash />
                     </button>
@@ -56,6 +57,15 @@ const CommentItem = ({
                                 >
                                     <FaEdit /> Edit
                                 </button>
+                                {/* If you want the delete button available outside edit mode as well, uncomment below */}
+                                {/*
+                                <button 
+                                    className="comment-trash-icon" 
+                                    onClick={() => onDeleteComment(comment.id)}
+                                >
+                                    <FaTrash />
+                                </button>
+                                */}
                             </div>
                         )}
                     </div>
@@ -97,7 +107,7 @@ const CommentSection = ({ postId, userId }) => {
         if (!commentContent.trim()) return;
         try {
             await createCommentOnPost(postId, commentContent);
-            reloadComments(); // Reload comments
+            reloadComments();
             setCommentContent('');
         } catch (error) {
             console.error('Error adding comment:', error);
@@ -107,7 +117,7 @@ const CommentSection = ({ postId, userId }) => {
     const handleEditComment = async (commentId, content) => {
         try {
             await editComment(commentId, content);
-            reloadComments(); // Reload comments
+            reloadComments(); 
             setEditingCommentId(null);
         } catch (error) {
             console.error('Error editing comment:', error);
@@ -117,7 +127,11 @@ const CommentSection = ({ postId, userId }) => {
     const handleDeleteComment = async (commentId) => {
         try {
             await deleteComment(commentId);
-            reloadComments(); // Reload comments
+            // If the comment being deleted is in edit mode, clear the editing state.
+            if (editingCommentId === commentId) {
+                setEditingCommentId(null);
+            }
+            reloadComments();
         } catch (error) {
             console.error('Error deleting comment:', error);
         }

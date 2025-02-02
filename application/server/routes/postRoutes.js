@@ -33,7 +33,7 @@ router.get('/:postId', postController.getPostById);
 router.delete('/:postId', userController.verifyToken, postController.deletePost);
 
 // delete comment from specific post
-router.delete('/:postId/comments/:commentId', userController.verifyToken, postController.deletePost);
+router.delete('/:postId/comments/:commentId', userController.verifyToken, postController.deleteComment);
 
 // edit post
 router.put('/:postId/editPost', userController.verifyToken, postController.editPost);

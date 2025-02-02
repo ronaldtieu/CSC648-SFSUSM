@@ -426,7 +426,8 @@ exports.deleteComment = (req, res) => {
         });
     }
 
-    const checkQuery = `SELECT * FROM Comments WHERE ID = ? AND PostID = ? AND UserID = ?`;
+    // Updated column names to lowercase
+    const checkQuery = `SELECT * FROM Comments WHERE id = ? AND postId = ? AND userId = ?`;
 
     db.query(checkQuery, [commentId, postId, userId], (err, results) => {
         if (err) {
@@ -444,7 +445,7 @@ exports.deleteComment = (req, res) => {
             });
         }
 
-        const deleteQuery = `DELETE FROM Comments WHERE ID = ? AND PostID = ? AND UserID = ?`;
+        const deleteQuery = `DELETE FROM Comments WHERE id = ? AND postId = ? AND userId = ?`;
         db.query(deleteQuery, [commentId, postId, userId], (err, deleteResults) => {
             if (err) {
                 console.error('Error deleting comment: ', err);
