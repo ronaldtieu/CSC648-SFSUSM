@@ -13,16 +13,39 @@ const CommentItem = ({
     onCancelEdit, 
     onStartEdit 
 }) => {
+    // Adjust property names as needed based on your API response.
     const isUserComment = Number(comment.userId) === Number(userId);
     const [editableText, setEditableText] = useState(comment.content);
+    // Local state to control delete confirmation prompt
+    const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
-    return (
-        <div className="comment-box">
-            <div className="comment-header">
-                <p className="comment-name">{comment.firstName} {comment.lastName}</p>
-            </div>
-
-            {editingCommentId === comment.id ? (
+    // When in edit mode for this comment...
+    if (editingCommentId === comment.id) {
+        // If the user has clicked delete, show the confirmation prompt.
+        if (isConfirmingDelete) {
+            return (
+                <div className="comment-box">
+                    <div className="delete-confirmation">
+                        <p>Are you sure you want to delete this comment?</p>
+                        <button 
+                            onClick={() => {
+                                // Confirm deletion: call the delete handler
+                                onDeleteComment(comment.id, comment.userId);
+                            }}
+                        >
+                            Yes
+                        </button>
+                        <button onClick={() => setIsConfirmingDelete(false)}>No</button>
+                    </div>
+                </div>
+            );
+        }
+        // Otherwise, show the edit UI with a delete button that triggers confirmation.
+        return (
+            <div className="comment-box">
+                <div className="comment-header">
+                    <p className="comment-name">{comment.firstName} {comment.lastName}</p>
+                </div>
                 <div className="edit-container">
                     <textarea
                         value={editableText}
@@ -33,49 +56,50 @@ const CommentItem = ({
                         <button className="save-button" onClick={() => onEditComment(comment.id, editableText)}>Save</button>
                         <button className="cancel-button" onClick={onCancelEdit}>Cancel</button>
                     </div>
-                    {/* Delete button appears in edit mode */}
-                    <button className="comment-trash-icon" onClick={() => onDeleteComment(comment.id)}>
+                    {/* The delete button now only appears in edit mode.
+                        Clicking it shows the confirmation prompt. */}
+                    <button 
+                        className="comment-trash-icon" 
+                        onClick={() => setIsConfirmingDelete(true)}
+                    >
                         <FaTrash />
                     </button>
                 </div>
-            ) : (
-                <>
-                    <p className="comment-content">{comment.content}</p>
-                    <div className="comment-footer">
-                        <p className="comment-date">
-                            {new Date(comment.createdAt).toLocaleDateString()} @ 
-                            {new Date(comment.createdAt).toLocaleTimeString()}
-                        </p>
-                        {isUserComment && (
-                            <div className="comment-actions">
-                                <button 
-                                    className="edit-comment-button" 
-                                    onClick={() => {
-                                        setEditableText(comment.content);
-                                        onStartEdit(comment.id);
-                                    }}
-                                >
-                                    <FaEdit /> Edit
-                                </button>
-                                {/* If you want the delete button available outside edit mode as well, uncomment below */}
-                                {/*
-                                <button 
-                                    className="comment-trash-icon" 
-                                    onClick={() => onDeleteComment(comment.id)}
-                                >
-                                    <FaTrash />
-                                </button>
-                                */}
-                            </div>
-                        )}
+            </div>
+        );
+    }
+
+    // When not in edit mode, simply display the comment content and an edit button.
+    return (
+        <div className="comment-box">
+            <div className="comment-header">
+                <p className="comment-name">{comment.firstName} {comment.lastName}</p>
+            </div>
+            <p className="comment-content">{comment.content}</p>
+            <div className="comment-footer">
+                <p className="comment-date">
+                    {new Date(comment.createdAt).toLocaleDateString()} @ 
+                    {new Date(comment.createdAt).toLocaleTimeString()}
+                </p>
+                {isUserComment && (
+                    <div className="comment-actions">
+                        <button 
+                            className="edit-comment-button" 
+                            onClick={() => {
+                                setEditableText(comment.content);
+                                onStartEdit(comment.id);
+                            }}
+                        >
+                            <FaEdit /> Edit
+                        </button>
                     </div>
-                </>
-            )}
+                )}
+            </div>
         </div>
     );
 };
 
-// Comment Section Component that loads its own comments
+// Comment Section Component that loads and displays comments
 const CommentSection = ({ postId, userId }) => {
     const [commentContent, setCommentContent] = useState('');
     const [comments, setComments] = useState([]);
@@ -124,13 +148,21 @@ const CommentSection = ({ postId, userId }) => {
         }
     };
 
-    const handleDeleteComment = async (commentId) => {
+    const handleDeleteComment = async (commentId, commentUserId) => {
+        console.log('Delete comment being called.');
+        console.log(`- Current User ID (Session): ${userId}`);
+        console.log(`- Comment Owner User ID: ${commentUserId}`);
+        console.log(`- Comment ID: ${commentId}`);
+    
         try {
-            await deleteComment(commentId);
-            // If the comment being deleted is in edit mode, clear the editing state.
+            // Call the delete service with both postId and commentId.
+            await deleteComment(postId, commentId);
+    
+            // If the comment being deleted is in edit mode, clear that state.
             if (editingCommentId === commentId) {
                 setEditingCommentId(null);
             }
+            
             reloadComments();
         } catch (error) {
             console.error('Error deleting comment:', error);

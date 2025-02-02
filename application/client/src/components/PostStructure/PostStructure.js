@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { likePost, unlikePost, getPostLikes, editPost, deletePost } from '../../service/postService';
+import { likePost, unlikePost, getPostLikes, editPost, deletePost, deleteComment } from '../../service/postService';
 import { FaThumbsUp, FaComment, FaEllipsisH } from 'react-icons/fa';
 import CommentSection from '../CommentSection/CommentSection'; 
 import './PostStructure.css';
@@ -24,7 +24,7 @@ const usePostData = (postId, userId) => {
         if (postId) loadPostData();
     }, [postId, loadPostData]);
 
-    return { isLiked, totalLikes, comments, loadPostData, setIsLiked, setTotalLikes };
+    return { isLiked, totalLikes, comments, setComments, loadPostData, setIsLiked, setTotalLikes };
 };
 
 // Hook for handling outside clicks
@@ -119,6 +119,7 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
             console.error('Error deleting post:', error);
         }
     };
+
 
     // If delete confirmation is active, replace entire post content with confirmation view
     if (showDeleteConfirm) {
