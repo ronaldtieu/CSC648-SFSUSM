@@ -472,7 +472,7 @@ exports.deleteComment = (req, res) => {
 
 // edit post
 exports.editPost = (req, res) => {
-    const userId = req.userId;  // Extracted from JWT middleware
+    const userId = req.userId;  
     const { postId } = req.params;
     const { content } = req.body;
 
@@ -521,22 +521,25 @@ exports.editPost = (req, res) => {
 
 // edit comment
 exports.editComment = (req, res) => {
-    const userId = req.userId;  
-    const { postId, commentId } = req.params;
+    const userId = req.userId; 
+    const { commentId } = req.params;
     const { content } = req.body;
 
-    if (!commentId || !postId || !content || content.trim() === '') {
+    // console.log("Incoming request to edit comment.");
+    // console.log(`- Session User ID: ${userId}`);
+    // console.log(`- Comment ID: ${commentId}`);
+
+    if (!commentId || !content || content.trim() === '') {
         return res.json({
             success: false,
-            message: 'Error with commentId, postId, or comment content',
+            message: 'Error with commentId or comment content',
         });
     }
 
-    const checkQuery = `SELECT * FROM Comments WHERE ID = ? AND PostID = ? AND UserID = ?`;
-
-    db.query(checkQuery, [commentId, postId, userId], (err, results) => {
+    const checkQuery = `SELECT * FROM Comments WHERE ID = ?`;
+    db.query(checkQuery, [commentId], (err, results) => {
         if (err) {
-            console.error('Error verifying comment ownership: ', err);
+            console.error('Error verifying comment ownership:', err);
             return res.json({
                 success: false,
                 message: 'Error verifying comment ownership.',
@@ -546,14 +549,24 @@ exports.editComment = (req, res) => {
         if (results.length === 0) {
             return res.json({
                 success: false,
-                message: 'No comment found for this post or user is not the owner of the comment.',
+                message: 'No comment found with this ID.',
             });
         }
 
-        const updateQuery = `UPDATE Comments SET Content = ? WHERE ID = ? AND PostID = ? AND UserID = ?`;
-        db.query(updateQuery, [content, commentId, postId, userId], (err, updateResults) => {
+        const commentOwnerId = results[0].UserID;
+        // console.log(`- Comment Owner User ID: ${commentOwnerId}`);
+
+        if (Number(commentOwnerId) !== Number(userId)) {
+            return res.json({
+                success: false,
+                message: 'User is not the owner of the comment.',
+            });
+        }
+
+        const updateQuery = `UPDATE Comments SET Content = ? WHERE ID = ? AND UserID = ?`;
+        db.query(updateQuery, [content, commentId, userId], (err, updateResults) => {
             if (err) {
-                console.error('Error updating comment: ', err);
+                console.error('Error updating comment:', err);
                 return res.json({
                     success: false,
                     message: 'Error updating comment content.',

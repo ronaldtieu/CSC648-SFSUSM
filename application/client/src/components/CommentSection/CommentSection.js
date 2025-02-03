@@ -3,7 +3,6 @@ import { FaEdit, FaTrash } from 'react-icons/fa';
 import { createCommentOnPost, editComment, deleteComment, getPostComments } from '../../service/postService';
 import './CommentSection.css';
 
-// Component for rendering individual comments
 const CommentItem = ({ 
     comment, 
     userId, 
@@ -13,34 +12,22 @@ const CommentItem = ({
     onCancelEdit, 
     onStartEdit 
 }) => {
-    // Adjust property names as needed based on your API response.
     const isUserComment = Number(comment.userId) === Number(userId);
     const [editableText, setEditableText] = useState(comment.content);
-    // Local state to control delete confirmation prompt
     const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
-    // When in edit mode for this comment...
     if (editingCommentId === comment.id) {
-        // If the user has clicked delete, show the confirmation prompt.
         if (isConfirmingDelete) {
             return (
                 <div className="comment-box">
                     <div className="delete-confirmation">
                         <p>Are you sure you want to delete this comment?</p>
-                        <button 
-                            onClick={() => {
-                                // Confirm deletion: call the delete handler
-                                onDeleteComment(comment.id, comment.userId);
-                            }}
-                        >
-                            Yes
-                        </button>
+                        <button onClick={() => onDeleteComment(comment.id, comment.userId)}>Yes</button>
                         <button onClick={() => setIsConfirmingDelete(false)}>No</button>
                     </div>
                 </div>
             );
         }
-        // Otherwise, show the edit UI with a delete button that triggers confirmation.
         return (
             <div className="comment-box">
                 <div className="comment-header">
@@ -53,15 +40,9 @@ const CommentItem = ({
                         placeholder="Edit your comment..."
                     />
                     <div className="edit-buttons">
-                        <button className="save-button" onClick={() => onEditComment(comment.id, editableText)}>Save</button>
-                        <button className="cancel-button" onClick={onCancelEdit}>Cancel</button>
+                        <button className="save-button" onClick={() => onEditComment(comment.id, editableText, comment.userId)}>Save</button>                        <button className="cancel-button" onClick={onCancelEdit}>Cancel</button>
                     </div>
-                    {/* The delete button now only appears in edit mode.
-                        Clicking it shows the confirmation prompt. */}
-                    <button 
-                        className="comment-trash-icon" 
-                        onClick={() => setIsConfirmingDelete(true)}
-                    >
+                    <button className="comment-trash-icon" onClick={() => setIsConfirmingDelete(true)}>
                         <FaTrash />
                     </button>
                 </div>
@@ -69,7 +50,6 @@ const CommentItem = ({
         );
     }
 
-    // When not in edit mode, simply display the comment content and an edit button.
     return (
         <div className="comment-box">
             <div className="comment-header">
@@ -83,13 +63,10 @@ const CommentItem = ({
                 </p>
                 {isUserComment && (
                     <div className="comment-actions">
-                        <button 
-                            className="edit-comment-button" 
-                            onClick={() => {
-                                setEditableText(comment.content);
-                                onStartEdit(comment.id);
-                            }}
-                        >
+                        <button className="edit-comment-button" onClick={() => {
+                            setEditableText(comment.content);
+                            onStartEdit(comment.id);
+                        }}>
                             <FaEdit /> Edit
                         </button>
                     </div>
@@ -99,13 +76,12 @@ const CommentItem = ({
     );
 };
 
-// Comment Section Component that loads and displays comments
 const CommentSection = ({ postId, userId }) => {
     const [commentContent, setCommentContent] = useState('');
     const [comments, setComments] = useState([]);
     const [editingCommentId, setEditingCommentId] = useState(null);
+    const [sortOrder, setSortOrder] = useState('asc'); // 'asc' for oldest first, 'desc' for newest first
 
-    // Load comments when the component mounts or when postId changes
     useEffect(() => {
         const loadComments = async () => {
             try {
@@ -138,13 +114,45 @@ const CommentSection = ({ postId, userId }) => {
         }
     };
 
-    const handleEditComment = async (commentId, content) => {
+    const handleEditComment = async (commentId, content, commentUserId) => {
+        if (!content.trim()) {
+            console.log("Edit attempt failed: Comment content is empty.");
+            return;
+        }
+    
+        console.log(`Attempting to edit comment ID: ${commentId}`);
+        console.log(`- Session User ID: ${userId}`);
+        console.log(`- Comment Owner User ID: ${commentUserId || 'undefined (check source)'}`);
+    
+        if (!commentUserId) {
+            console.log("Error: Comment owner ID is undefined. Possible issue in data fetching.");
+            return;
+        }
+    
+        if (Number(commentUserId) !== Number(userId)) {
+            console.log("Edit denied: User is not the owner of the comment.");
+            return;
+        }
+    
+        console.log("Edit permitted: Proceeding with update.");
+    
+        setComments(prevComments => {
+            const updatedComments = prevComments.map(comment =>
+                comment.id === commentId ? { ...comment, content } : comment
+            );
+            console.log("Updated Comments (before API call):", updatedComments);
+            return updatedComments;
+        });
+    
         try {
-            await editComment(commentId, content);
-            reloadComments(); 
-            setEditingCommentId(null);
+            await editComment(postId, commentId, content);
+            console.log("Comment successfully edited on the server. Reloading comments...");
+            reloadComments();
         } catch (error) {
-            console.error('Error editing comment:', error);
+            console.log("Error editing comment:", error);
+        } finally {
+            console.log(`Finished processing edit for comment ID: ${commentId}`);
+            setEditingCommentId(null);
         }
     };
 
@@ -155,10 +163,8 @@ const CommentSection = ({ postId, userId }) => {
         console.log(`- Comment ID: ${commentId}`);
     
         try {
-            // Call the delete service with both postId and commentId.
             await deleteComment(postId, commentId);
     
-            // If the comment being deleted is in edit mode, clear that state.
             if (editingCommentId === commentId) {
                 setEditingCommentId(null);
             }
@@ -168,6 +174,16 @@ const CommentSection = ({ postId, userId }) => {
             console.error('Error deleting comment:', error);
         }
     };
+
+    const toggleSortOrder = () => {
+        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    };
+
+    const sortedComments = [...comments].sort((a, b) => {
+        return sortOrder === 'asc' 
+            ? new Date(a.createdAt) - new Date(b.createdAt) 
+            : new Date(b.createdAt) - new Date(a.createdAt);
+    });
 
     return (
         <div className="comments-section">
@@ -180,7 +196,11 @@ const CommentSection = ({ postId, userId }) => {
                 <button onClick={handleCommentSubmit}>Comment</button>
             </div>
 
-            {comments.map(comment => (
+            <button className="sort-button" onClick={toggleSortOrder}>
+                Sort by: {sortOrder === 'asc' ? 'Oldest First' : 'Newest First'}
+            </button>
+
+            {sortedComments.map(comment => (
                 <CommentItem
                     key={comment.id}
                     comment={comment}
