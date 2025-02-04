@@ -1,15 +1,16 @@
 const BASE_URL = 'http://localhost:4000/groups'; 
 
 // Create a new group
-export const createGroup = async (groupName, token) => {
+export const createGroup = async (groupName) => {
     const response = await fetch(`${BASE_URL}/create`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ groupName })
+        credentials: 'include',  // Ensures session cookie is sent
+        body: JSON.stringify({ groupName })  // Do NOT send adminId manually
     });
+
     return response.json();
 };
 

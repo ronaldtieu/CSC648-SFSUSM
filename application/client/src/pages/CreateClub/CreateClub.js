@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import './CreateClub.css'; 
+import { createGroup } from '../../service/groupService'; 
 
-const CreateClub = () => {
+const CreateClub = ({ token }) => {
   const [clubPicture, setClubPicture] = useState(null);
   const [clubName, setClubName] = useState('');
   const [description, setDescription] = useState('');
@@ -16,7 +17,7 @@ const CreateClub = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!clubName.trim() || !description.trim()) {
@@ -27,21 +28,26 @@ const CreateClub = () => {
 
     setError('');
 
-    console.log({
-      clubPicture, 
-      clubName,
-      description,
-      category,
-      meetingTime,
-    });
-    
-    setSuccess('Club created successfully!');
-    
-    setClubPicture(null);
-    setClubName('');
-    setDescription('');
-    setCategory('');
-    setMeetingTime('');
+    try {
+      const response = await createGroup(clubName, token);
+      
+      if (response.success) {
+        setSuccess('Club created successfully!');
+        console.log('Club Created:', response);
+        
+        // Optionally, reset form fields
+        setClubPicture(null);
+        setClubName('');
+        setDescription('');
+        setCategory('');
+        setMeetingTime('');
+      } else {
+        setError(response.message || 'Failed to create club.');
+      }
+    } catch (error) {
+      console.error('Error creating club:', error);
+      setError('An error occurred while creating the club.');
+    }
   };
 
   return (
