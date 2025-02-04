@@ -137,7 +137,6 @@
     background-color: #c82333;
   }
   
-  /* Trash icon button styling */
   .comment-trash-icon {
     background: none;
     border: none;
@@ -147,3 +146,14 @@
     align-self: flex-end;
     margin-top: 5px;
   }
+
+  .sort-button {
+    padding: 2px;
+    width: 20%;
+    font-size: 12px; 
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    color: #333;
+    cursor: pointer;
+}
