@@ -15,6 +15,7 @@ import LandingPage from './pages/LandingPage/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import { checkSession } from './service/profileService'; 
 import ViewProfile from './pages/Profile/ViewProfile';
+import CreateClub from './pages/CreateClub/CreateClub';
 
 import './App.css';
 
@@ -61,6 +62,8 @@ const App = () => {
         <ProtectedRoute path="/tutoring-mentorship" component={TutoringMentorshipPage} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/marketplace" component={Marketplace} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/discounts-deals" component={DiscountsDeals} isLoggedIn={isLoggedIn} />
+        <ProtectedRoute path="/create-club" component={CreateClub} isLoggedIn={isLoggedIn} />
+
 
         <Redirect to={isLoggedIn ? "/home" : "/"} />
       </Switch>

@@ -14,7 +14,7 @@ const Header = ({ notifications, messages }) => {
   const messagesRef = useRef(null);
   const notificationsRef = useRef(null);
   const history = useHistory();
-  const [searchTerm, setSearchTerm] = useState(''); // New state for search term
+  const [searchTerm, setSearchTerm] = useState('');
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -138,13 +138,34 @@ const Header = ({ notifications, messages }) => {
       {/* Sidebar */}
       <div ref={sidebarRef} className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <ul>
-          <li><Link to="/tutoring-mentorship" onClick={closeSidebar}>Peer Tutoring & Mentorship</Link></li>
-          <li><Link to="/marketplace" onClick={closeSidebar}>Marketplace</Link></li>
-          <li><Link to="/housing-roommate" onClick={closeSidebar}>Housing & Roommate Finder</Link></li>
-          <li><Link to="/discounts-deals" onClick={closeSidebar}>Student Discounts & Deals</Link></li>
-          <li><Link to="/club-announcements" onClick={closeSidebar}>Club Announcements</Link></li>
-          <li><Link to="/settings" onClick={closeSidebar}>Settings</Link></li>
-          <li><a href="/" onClick={handleLogout}>Logout</a></li>
+          <li>
+            <Link to="/create-club" onClick={closeSidebar} className="sidebar-link create-club-button">
+              Create Club
+            </Link>
+          </li>
+          <li>
+            <Link to="/tutoring-mentorship" onClick={closeSidebar}>
+              Peer Tutoring & Mentorship
+            </Link>
+          </li>
+          <li>
+            <Link to="/marketplace" onClick={closeSidebar}>Marketplace</Link>
+          </li>
+          <li>
+            <Link to="/housing-roommate" onClick={closeSidebar}>Housing & Roommate Finder</Link>
+          </li>
+          <li>
+            <Link to="/discounts-deals" onClick={closeSidebar}>Student Discounts & Deals</Link>
+          </li>
+          <li>
+            <Link to="/club-announcements" onClick={closeSidebar}>Club Announcements</Link>
+          </li>
+          <li>
+            <Link to="/settings" onClick={closeSidebar}>Settings</Link>
+          </li>
+          <li>
+            <a href="/" onClick={handleLogout}>Logout</a>
+          </li>
         </ul>
       </div>
 
