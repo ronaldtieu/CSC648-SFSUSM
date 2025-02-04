@@ -8,10 +8,19 @@ exports.createGroup = (req, res) => {
     const { groupName } = req.body;
     const adminId = req.userId;
 
+    console.log('Received User ID:', adminId); // Debugging step
+
     if (!groupName) {
         return res.json({
             success: false,
             message: 'Group name is required.',
+        });
+    }
+
+    if (!adminId) {
+        return res.status(401).json({
+            success: false,
+            message: 'Unauthorized: No valid user ID found in session.',
         });
     }
 
@@ -370,7 +379,6 @@ exports.getAllGroups = (req, res) => {
         });
     });
 };
-
 
 // Get All Members of a Group
 exports.getGroupMembers = (req, res) => {

@@ -86,3 +86,14 @@ export const getGroupPosts = async (groupId, token) => {
     });
     return response.json();
 };
+
+// Fetch all groups
+export const getAllGroups = async (token) => {
+    const response = await fetch(`${BASE_URL}/getAllGroups`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    return response.json();
+};

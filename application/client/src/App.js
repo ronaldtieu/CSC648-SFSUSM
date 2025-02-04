@@ -16,6 +16,7 @@ import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import { checkSession } from './service/profileService'; 
 import ViewProfile from './pages/Profile/ViewProfile';
 import CreateClub from './pages/CreateClub/CreateClub';
+import ViewClubs from './pages/ViewClubs/ViewClubs';
 
 import './App.css';
 
@@ -63,6 +64,7 @@ const App = () => {
         <ProtectedRoute path="/marketplace" component={Marketplace} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/discounts-deals" component={DiscountsDeals} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/create-club" component={CreateClub} isLoggedIn={isLoggedIn} />
+        <ProtectedRoute path="/view-clubs" component={ViewClubs} isLoggedIn={isLoggedIn} />
 
 
         <Redirect to={isLoggedIn ? "/home" : "/"} />

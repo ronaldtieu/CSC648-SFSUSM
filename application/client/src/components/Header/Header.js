@@ -144,6 +144,11 @@ const Header = ({ notifications, messages }) => {
             </Link>
           </li>
           <li>
+            <Link to="/view-clubs" onClick={closeSidebar} className="sidebar-link">
+              View Clubs
+            </Link>
+          </li>
+          <li>
             <Link to="/tutoring-mentorship" onClick={closeSidebar}>
               Peer Tutoring & Mentorship
             </Link>
