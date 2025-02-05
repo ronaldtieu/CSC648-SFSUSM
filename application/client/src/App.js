@@ -17,12 +17,13 @@ import { checkSession } from './service/profileService';
 import ViewProfile from './pages/Profile/ViewProfile';
 import CreateClub from './pages/CreateClub/CreateClub';
 import ViewClubs from './pages/ViewClubs/ViewClubs';
+import Club from './pages/Club/Club'; 
 
 import './App.css';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkUserSession = async () => {
@@ -37,13 +38,16 @@ const App = () => {
       } catch (error) {
         console.error('Error checking session:', error);
       } finally {
-        setLoading(false); // Stop showing the loader
+        setLoading(false);
       }
     };
 
     checkUserSession();
   }, []);
 
+  if (loading) {
+    return <p>Loading...</p>; 
+  }
 
   return (
     <Router>
@@ -65,7 +69,8 @@ const App = () => {
         <ProtectedRoute path="/discounts-deals" component={DiscountsDeals} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/create-club" component={CreateClub} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/view-clubs" component={ViewClubs} isLoggedIn={isLoggedIn} />
-
+        {/* New route for club details */}
+        <ProtectedRoute path="/club/:id" component={Club} isLoggedIn={isLoggedIn} />
 
         <Redirect to={isLoggedIn ? "/home" : "/"} />
       </Switch>

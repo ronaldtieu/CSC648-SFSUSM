@@ -144,4 +144,5 @@ CREATE TABLE IF NOT EXISTS Messages (
 );
 
 
-
+ALTER TABLE `Groups`
+ADD COLUMN `Description` VARCHAR(255) DEFAULT '';

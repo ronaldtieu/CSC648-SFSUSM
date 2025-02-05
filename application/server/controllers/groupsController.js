@@ -414,3 +414,85 @@ exports.getGroupMembers = (req, res) => {
         });
     });
 };
+
+// Get Group By ID with details, members, and posts
+exports.getGroupById = (req, res) => {
+    const { groupId } = req.params;
+
+    if (!groupId) {
+        return res.json({
+            success: false,
+            message: 'Group ID is required.',
+        });
+    }
+
+    const groupQuery = `
+        SELECT ID, Name, Description, AdminID
+        FROM \`Groups\`
+        WHERE ID = ?
+    `;
+
+    db.query(groupQuery, [groupId], (err, groupResults) => {
+        if (err) {
+            console.error('Error retrieving group details:', err);
+            return res.json({
+                success: false,
+                message: 'Failed to retrieve group details.',
+            });
+        }
+
+        if (groupResults.length === 0) {
+            return res.json({
+                success: false,
+                message: 'Group not found.',
+            });
+        }
+
+        const group = groupResults[0];
+
+        const membersQuery = `
+            SELECT Users.ID, Users.FirstName, Users.LastName
+            FROM GroupMembers
+            JOIN Users ON GroupMembers.UserID = Users.ID
+            WHERE GroupMembers.GroupID = ?
+            ORDER BY Users.FirstName ASC
+        `;
+
+        db.query(membersQuery, [groupId], (err, memberResults) => {
+            if (err) {
+                console.error('Error retrieving group members:', err);
+                return res.json({
+                    success: false,
+                    message: 'Failed to retrieve group members.',
+                });
+            }
+
+            group.members = memberResults;
+
+            const postsQuery = `
+                SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Users.FirstName, Users.LastName
+                FROM Posts
+                JOIN Users ON Posts.UserID = Users.ID
+                WHERE Posts.GroupID = ?
+                ORDER BY Posts.CreatedAt DESC
+            `;
+
+            db.query(postsQuery, [groupId], (err, postResults) => {
+                if (err) {
+                    console.error('Error retrieving group posts:', err);
+                    return res.json({
+                        success: false,
+                        message: 'Failed to retrieve group posts.',
+                    });
+                }
+
+                group.posts = postResults;
+
+                res.json({
+                    success: true,
+                    group,
+                });
+            });
+        });
+    });
+};

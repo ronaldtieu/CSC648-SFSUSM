@@ -30,4 +30,7 @@ router.get('/getAllGroups', userController.verifyToken, groupController.getAllGr
 // Get all Group Members
 router.get('/getGroupMembers', userController.verifyToken, groupController.getGroupMembers);
 
+// Get Group by ID
+router.get('/getGroupById/:groupId', userController.verifyToken, groupController.getGroupById);
+
 module.exports = router;
