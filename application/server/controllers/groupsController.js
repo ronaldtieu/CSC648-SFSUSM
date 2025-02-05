@@ -357,26 +357,34 @@ exports.getGroupPosts = (req, res) => {
 // Get All Groups
 // because group is a key word, must use it with ` in order to work properly
 exports.getAllGroups = (req, res) => {
+    const currentUserId = req.userId; 
+
+    console.log('Current session user ID:', currentUserId); // Log user ID for debugging
+
     const query = `
-        SELECT \`Groups\`.ID, \`Groups\`.Name, \`Groups\`.AdminID, Users.FirstName AS AdminFirstName, Users.LastName AS AdminLastName, \`Groups\`.CreatedAt
-        FROM \`Groups\`
-        JOIN Users ON \`Groups\`.AdminID = Users.ID
-        ORDER BY \`Groups\`.CreatedAt DESC
+      SELECT \`Groups\`.ID, \`Groups\`.Name, \`Groups\`.AdminID, 
+             Users.FirstName AS AdminFirstName, Users.LastName AS AdminLastName, \`Groups\`.CreatedAt
+      FROM \`Groups\`
+      JOIN Users ON \`Groups\`.AdminID = Users.ID
+      ORDER BY \`Groups\`.CreatedAt DESC
     `;
-
+  
     db.query(query, (err, results) => {
-        if (err) {
-            console.error('Error retrieving groups:', err);
-            return res.json({
-                success: false,
-                message: 'Failed to retrieve groups.',
-            });
-        }
-
-        res.json({
-            success: true,
-            groups: results,
+      if (err) {
+        console.error('Error retrieving groups:', err);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to retrieve groups.',
         });
+      }
+
+    //   console.log('Returning groups and user ID:', { currentUserId, groupCount: results.length }); // Log API response
+
+      res.json({
+        success: true,
+        groups: results,
+        currentUserId, 
+      });
     });
 };
 
@@ -418,81 +426,85 @@ exports.getGroupMembers = (req, res) => {
 // Get Group By ID with details, members, and posts
 exports.getGroupById = (req, res) => {
     const { groupId } = req.params;
-
+    const currentUserId = req.userId;
+  
     if (!groupId) {
-        return res.json({
-            success: false,
-            message: 'Group ID is required.',
-        });
+      return res.status(400).json({
+        success: false,
+        message: 'Group ID is required.',
+      });
     }
-
+  
     const groupQuery = `
-        SELECT ID, Name, Description, AdminID
-        FROM \`Groups\`
-        WHERE ID = ?
+      SELECT ID, Name, Description, AdminID
+      FROM \`Groups\`
+      WHERE ID = ?
     `;
-
+  
     db.query(groupQuery, [groupId], (err, groupResults) => {
-        if (err) {
-            console.error('Error retrieving group details:', err);
-            return res.json({
-                success: false,
-                message: 'Failed to retrieve group details.',
-            });
-        }
-
-        if (groupResults.length === 0) {
-            return res.json({
-                success: false,
-                message: 'Group not found.',
-            });
-        }
-
-        const group = groupResults[0];
-
-        const membersQuery = `
-            SELECT Users.ID, Users.FirstName, Users.LastName
-            FROM GroupMembers
-            JOIN Users ON GroupMembers.UserID = Users.ID
-            WHERE GroupMembers.GroupID = ?
-            ORDER BY Users.FirstName ASC
-        `;
-
-        db.query(membersQuery, [groupId], (err, memberResults) => {
-            if (err) {
-                console.error('Error retrieving group members:', err);
-                return res.json({
-                    success: false,
-                    message: 'Failed to retrieve group members.',
-                });
-            }
-
-            group.members = memberResults;
-
-            const postsQuery = `
-                SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Users.FirstName, Users.LastName
-                FROM Posts
-                JOIN Users ON Posts.UserID = Users.ID
-                WHERE Posts.GroupID = ?
-                ORDER BY Posts.CreatedAt DESC
-            `;
-
-            db.query(postsQuery, [groupId], (err, postResults) => {
-                if (err) {
-                    console.error('Error retrieving group posts:', err);
-                    return res.json({
-                        success: false,
-                        message: 'Failed to retrieve group posts.',
-                    });
-                }
-
-                group.posts = postResults;
-
-                res.json({
-                    success: true,
-                    group,
-                });
-            });
+      if (err) {
+        console.error('Error retrieving group details:', err);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to retrieve group details.',
         });
+      }
+  
+      if (groupResults.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Group not found.',
+        });
+      }
+  
+      const group = groupResults[0];
+  
+      const membersQuery = `
+        SELECT Users.ID, Users.FirstName, Users.LastName
+        FROM GroupMembers
+        JOIN Users ON GroupMembers.UserID = Users.ID
+        WHERE GroupMembers.GroupID = ?
+        ORDER BY Users.FirstName ASC
+      `;
+  
+      db.query(membersQuery, [groupId], (err, memberResults) => {
+        if (err) {
+          console.error('Error retrieving group members:', err);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to retrieve group members.',
+          });
+        }
+  
+        group.members = memberResults;
+  
+        const postsQuery = `
+          SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Users.FirstName, Users.LastName
+          FROM Posts
+          JOIN Users ON Posts.UserID = Users.ID
+          WHERE Posts.GroupID = ?
+          ORDER BY Posts.CreatedAt DESC
+        `;
+  
+        db.query(postsQuery, [groupId], (err, postResults) => {
+          if (err) {
+            console.error('Error retrieving group posts:', err);
+            return res.status(500).json({
+              success: false,
+              message: 'Failed to retrieve group posts.',
+            });
+          }
+  
+          group.posts = postResults;
+  
+          group.isAdmin = (group.AdminID === currentUserId);
+  
+          return res.json({
+            success: true,
+            group,
+            currentUserId, 
+          });
+        });
+      });
     });
-};
+  };

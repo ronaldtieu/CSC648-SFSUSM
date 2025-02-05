@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { getClubById } from '../../service/clubService';
 
-const Club = ({ token, userId }) => {
+const Club = ({ token }) => {
   const { id } = useParams();
+  const location = useLocation();
+  // Get the current user ID from the location state
+  const userId = location.state?.userId;
 
   const [club, setClub] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,6 +15,13 @@ const Club = ({ token, userId }) => {
   const [isMember, setIsMember] = useState(false);
 
   useEffect(() => {
+    // Only fetch the club data when userId is available
+    if (!userId) {
+      // Optionally, you might display a message or fetch the current user from another endpoint
+      console.warn('No userId provided in location state');
+      return;
+    }
+
     const fetchClub = async () => {
       setLoading(true);
       setError('');
@@ -19,11 +29,14 @@ const Club = ({ token, userId }) => {
         const data = await getClubById(id, token);
         if (data) {
           setClub(data);
+          console.log('Club Admin ID:', data.AdminID);
+          console.log('Current User ID:', userId);
+
+          // Check if current user is admin or a member
           if (data.AdminID === userId) {
             setIsAdmin(true);
             setIsMember(true);
-          }
-          else if (data.members && data.members.includes(userId)) {
+          } else if (data.members && data.members.includes(userId)) {
             setIsMember(true);
           }
         } else {
@@ -61,6 +74,7 @@ const Club = ({ token, userId }) => {
       <h1>{club.Name}</h1>
       <p>{club.Description}</p>
       <p>Admin ID: {club.AdminID}</p>
+      <p>Current User ID: {userId}</p>
 
       {isAdmin && (
         <div>
@@ -80,7 +94,6 @@ const Club = ({ token, userId }) => {
       {!isMember && (
         <p>You are not a member of this club. You can only view the club details.</p>
       )}
-
     </div>
   );
 };

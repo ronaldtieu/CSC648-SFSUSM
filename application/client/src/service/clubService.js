@@ -271,7 +271,7 @@ export const getClubById = async (clubId, token) => {
       }
   
       const data = await response.json();
-      console.log('getClubById: Data from backend:', data);
+    //   console.log('getClubById: Data from backend:', data);
   
       if (!data.success) {
         throw new Error(data.message || 'Failed to fetch club.');

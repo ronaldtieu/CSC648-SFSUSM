@@ -4,12 +4,14 @@ import { getAllGroups } from '../../service/groupService';
 
 const ViewClubs = ({ token }) => {
   const [groups, setGroups] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const history = useHistory(); // Hook for navigation
 
   useEffect(() => {
     const fetchGroups = async () => {
+      console.log("This is the current user ID = ", currentUserId);
       setLoading(true);
       setError('');
 
@@ -17,6 +19,9 @@ const ViewClubs = ({ token }) => {
         const data = await getAllGroups(token);
         if (data.success) {
           setGroups(data.groups || []);
+          if (data.currentUserId) {
+            setCurrentUserId(data.currentUserId);
+          }
         } else {
           setError(data.message || 'Failed to fetch clubs.');
         }
@@ -31,10 +36,15 @@ const ViewClubs = ({ token }) => {
     fetchGroups();
   }, [token]);
 
-  // Handler to redirect to the club page with the clubId
+  useEffect(() => {
+    if (currentUserId) {
+      console.log('Current session user ID in ViewClubs.js:', currentUserId);
+    }
+  }, [currentUserId]);
+
   const handleClubClick = (clubId) => {
-    console.log('Clicked club id : ', clubId);
-    history.push(`/club/${clubId}`);
+    console.log('Clicked club id:', clubId);
+    history.push(`/club/${clubId}`, { userId: currentUserId });
   };
 
   return (

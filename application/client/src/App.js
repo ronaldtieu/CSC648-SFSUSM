@@ -69,7 +69,6 @@ const App = () => {
         <ProtectedRoute path="/discounts-deals" component={DiscountsDeals} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/create-club" component={CreateClub} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/view-clubs" component={ViewClubs} isLoggedIn={isLoggedIn} />
-        {/* New route for club details */}
         <ProtectedRoute path="/club/:id" component={Club} isLoggedIn={isLoggedIn} />
 
         <Redirect to={isLoggedIn ? "/home" : "/"} />

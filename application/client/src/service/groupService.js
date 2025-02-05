@@ -94,7 +94,8 @@ export const getAllGroups = async (token) => {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`
-        }
+        },
+        credentials: 'include' 
     });
     return response.json();
 };
