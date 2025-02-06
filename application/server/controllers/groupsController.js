@@ -72,22 +72,22 @@ exports.createGroup = (req, res) => {
 
 // Update Group Info
 exports.updateGroup = (req, res) => {
-    const { groupId, groupName } = req.body;
+    const { groupId, groupName, description } = req.body;
     const adminId = req.userId;
 
-    if (!groupId || !groupName) {
+    if (!groupId || !groupName || !description) {
         return res.json({
             success: false,
-            message: 'Group ID and name are required.',
+            message: 'Group ID, name, and description are required.',
         });
     }
 
     const query = `
-        UPDATE \`Groups\` SET Name = ? 
+        UPDATE \`Groups\` SET Name = ?, Description = ?
         WHERE ID = ? AND AdminID = ?
     `;
 
-    db.query(query, [groupName, groupId, adminId], (err, result) => {
+    db.query(query, [groupName, description, groupId, adminId], (err, result) => {
         if (err) {
             console.error('Error updating group:', err);
             return res.json({
