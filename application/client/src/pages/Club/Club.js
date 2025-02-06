@@ -15,9 +15,7 @@ const Club = ({ token }) => {
   const [isMember, setIsMember] = useState(false);
 
   useEffect(() => {
-    // Only fetch the club data when userId is available
     if (!userId) {
-      // Optionally, you might display a message or fetch the current user from another endpoint
       console.warn('No userId provided in location state');
       return;
     }
@@ -32,7 +30,6 @@ const Club = ({ token }) => {
           console.log('Club Admin ID:', data.AdminID);
           console.log('Current User ID:', userId);
 
-          // Check if current user is admin or a member
           if (data.AdminID === userId) {
             setIsAdmin(true);
             setIsMember(true);
@@ -72,13 +69,15 @@ const Club = ({ token }) => {
   return (
     <div>
       <h1>{club.Name}</h1>
-      <p>{club.Description}</p>
+      {/* For non-admins, show the club description here */}
+      {!isAdmin && <p>{club.Description}</p>}
       <p>Admin ID: {club.AdminID}</p>
       <p>Current User ID: {userId}</p>
 
       {isAdmin && (
         <div>
-          <h3>Admin Options:</h3>
+          <h3>Club Description:</h3>
+          <p>{club.Description}</p>
           <button onClick={handleEdit}>Edit Club Details</button>
         </div>
       )}

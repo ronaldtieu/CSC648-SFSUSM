@@ -5,10 +5,10 @@ require('dotenv').config();
 
 // Create a New Group
 exports.createGroup = (req, res) => {
-    const { groupName } = req.body;
+    const { groupName, description } = req.body;
     const adminId = req.userId;
 
-    console.log('Received User ID:', adminId); // Debugging step
+    console.log('Received User ID:', adminId); 
 
     if (!groupName) {
         return res.json({
@@ -17,19 +17,26 @@ exports.createGroup = (req, res) => {
         });
     }
 
+    if (!description) {
+        return res.json({
+            success: false,
+            message: 'Group description is required.',
+        });
+    }
+
     if (!adminId) {
-        return res.status(401).json({
+        return res.json({
             success: false,
             message: 'Unauthorized: No valid user ID found in session.',
         });
     }
 
     const createGroupQuery = `
-        INSERT INTO \`Groups\` (Name, AdminID)
-        VALUES (?, ?)
+        INSERT INTO \`Groups\` (Name, Description, AdminID)
+        VALUES (?, ?, ?)
     `;
 
-    db.query(createGroupQuery, [groupName, adminId], (err, result) => {
+    db.query(createGroupQuery, [groupName, description, adminId], (err, result) => {
         if (err) {
             console.error('Error creating group:', err);
             return res.json({
@@ -429,10 +436,10 @@ exports.getGroupById = (req, res) => {
     const currentUserId = req.userId;
   
     if (!groupId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Group ID is required.',
-      });
+        return res.json({
+            success: false,
+            message: 'Group ID is required.',
+        });
     }
   
     const groupQuery = `
@@ -442,69 +449,69 @@ exports.getGroupById = (req, res) => {
     `;
   
     db.query(groupQuery, [groupId], (err, groupResults) => {
-      if (err) {
-        console.error('Error retrieving group details:', err);
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to retrieve group details.',
-        });
-      }
-  
-      if (groupResults.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Group not found.',
-        });
-      }
-  
-      const group = groupResults[0];
-  
-      const membersQuery = `
-        SELECT Users.ID, Users.FirstName, Users.LastName
-        FROM GroupMembers
-        JOIN Users ON GroupMembers.UserID = Users.ID
-        WHERE GroupMembers.GroupID = ?
-        ORDER BY Users.FirstName ASC
-      `;
-  
-      db.query(membersQuery, [groupId], (err, memberResults) => {
         if (err) {
-          console.error('Error retrieving group members:', err);
-          return res.status(500).json({
-            success: false,
-            message: 'Failed to retrieve group members.',
-          });
+            console.error('Error retrieving group details:', err);
+            return res.json({
+                success: false,
+                message: 'Failed to retrieve group details.',
+            });
         }
   
-        group.members = memberResults;
+        if (groupResults.length === 0) {
+            return res.json({
+                success: false,
+                message: 'Group not found.',
+            });
+        }
   
-        const postsQuery = `
-          SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Users.FirstName, Users.LastName
-          FROM Posts
-          JOIN Users ON Posts.UserID = Users.ID
-          WHERE Posts.GroupID = ?
-          ORDER BY Posts.CreatedAt DESC
+        const group = groupResults[0];
+  
+        const membersQuery = `
+          SELECT Users.ID, Users.FirstName, Users.LastName
+          FROM GroupMembers
+          JOIN Users ON GroupMembers.UserID = Users.ID
+          WHERE GroupMembers.GroupID = ?
+          ORDER BY Users.FirstName ASC
         `;
   
-        db.query(postsQuery, [groupId], (err, postResults) => {
-          if (err) {
-            console.error('Error retrieving group posts:', err);
-            return res.status(500).json({
-              success: false,
-              message: 'Failed to retrieve group posts.',
+        db.query(membersQuery, [groupId], (err, memberResults) => {
+            if (err) {
+                console.error('Error retrieving group members:', err);
+                return res.json({
+                    success: false,
+                    message: 'Failed to retrieve group members.',
+                });
+            }
+  
+            group.members = memberResults;
+  
+            const postsQuery = `
+              SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Users.FirstName, Users.LastName
+              FROM Posts
+              JOIN Users ON Posts.UserID = Users.ID
+              WHERE Posts.GroupID = ?
+              ORDER BY Posts.CreatedAt DESC
+            `;
+  
+            db.query(postsQuery, [groupId], (err, postResults) => {
+                if (err) {
+                    console.error('Error retrieving group posts:', err);
+                    return res.json({
+                        success: false,
+                        message: 'Failed to retrieve group posts.',
+                    });
+                }
+  
+                group.posts = postResults;
+  
+                group.isAdmin = (group.AdminID === currentUserId);
+  
+                return res.json({
+                    success: true,
+                    group,
+                    currentUserId, 
+                });
             });
-          }
-  
-          group.posts = postResults;
-  
-          group.isAdmin = (group.AdminID === currentUserId);
-  
-          return res.json({
-            success: true,
-            group,
-            currentUserId, 
-          });
         });
-      });
     });
-  };
+};
