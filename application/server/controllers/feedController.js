@@ -23,26 +23,31 @@ exports.getUserFeed = (req, res) => {
             u.FirstName AS firstName, 
             u.LastName AS lastName, 
             CASE 
-                WHEN p.UserID = ? THEN 'user'       -- Posts from the user themselves
-                WHEN p.GroupID IS NOT NULL THEN 'group' -- Posts from groups the user is a member of
-                ELSE 'friend'                      -- Posts from the user's friends
+                WHEN p.UserID = ? THEN 'user'
+                WHEN p.GroupID IS NOT NULL THEN 'group'
+                WHEN f.ID IS NOT NULL THEN 'friend'
+                ELSE 'public'
             END AS source
         FROM Posts p
         JOIN Users u ON p.UserID = u.ID
-        -- Join with Friends table to include posts from the user's friends
-        LEFT JOIN Friends f ON (f.UserID1 = ? AND f.UserID2 = p.UserID) 
-                           OR (f.UserID2 = ? AND f.UserID1 = p.UserID)
-        -- Join with GroupMembers table to include posts from groups the user is in
-        LEFT JOIN GroupMembers gm ON gm.UserID = p.UserID
+        LEFT JOIN Friends f 
+            ON (f.UserID1 = ? AND f.UserID2 = p.UserID)
+            OR (f.UserID2 = ? AND f.UserID1 = p.UserID)
         WHERE 
-            p.UserID = ? -- Fetch the user's own posts
-            OR f.ID IS NOT NULL -- Fetch posts from friends
-            OR gm.GroupID IN (SELECT GroupID FROM GroupMembers WHERE UserID = ?) -- Fetch posts from groups the user is in
+            p.UserID = ?
+            OR (p.GroupID IS NOT NULL AND p.GroupID IN (
+                    SELECT GroupID FROM GroupMembers WHERE UserID = ?
+                ))
+            OR (f.ID IS NOT NULL)
+            OR (p.Visibility = 'public' 
+                AND p.GroupID IS NULL 
+                AND f.ID IS NULL 
+                AND p.UserID <> ?)
         ORDER BY p.CreatedAt DESC
         LIMIT 50;
     `;
 
-    db.query(getUserFeedQuery, [userId, userId, userId, userId, userId], (err, results) => {
+    db.query(getUserFeedQuery, [userId, userId, userId, userId, userId, userId], (err, results) => {
         if (err) {
             console.error('Error retrieving user feed:', err);
             return res.json({

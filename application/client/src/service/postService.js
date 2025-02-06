@@ -27,30 +27,30 @@ export const fetchUserPosts = async () => {
 
 
   // create post
-  export const createPost = async (content) => {
+  export const createPost = async (payload) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/createPost`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ content }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to create post. Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-            throw new Error('Failed to create post.');
-        }
-
-        return { message: data.message, postId: data.postId, userId: data.userId }; // Includes userId
+      const response = await fetch(`${API_BASE_URL}/createPost`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload), 
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Failed to create post. Status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error('Failed to create post.');
+      }
+  
+      return { message: data.message, postId: data.postId, userId: data.userId };
     } catch (error) {
-        console.error('Error creating post:', error);
-        throw error;
+      console.error('Error creating post:', error);
+      throw error;
     }
-};
+  };
 
 
 // like post

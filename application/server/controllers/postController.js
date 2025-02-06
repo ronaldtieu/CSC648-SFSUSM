@@ -6,9 +6,8 @@ require('dotenv').config();
 
 // Create posts
 exports.createPost = (req, res) => {
-    const userId = req.userId;  // Assuming you extract userId from a JWT token in middleware
+    const userId = req.userId; 
 
-    // Check if userId exists
     if (!userId) {
         return res.json({
             success: false,
@@ -16,7 +15,12 @@ exports.createPost = (req, res) => {
         });
     }
 
-    const { content, visibility, groupId } = req.body;  // Extract content, visibility, and groupId from the request body
+    let { content, visibility, groupId } = req.body;
+    
+    // Ensure content is a string
+    if (typeof content !== 'string') {
+        content = String(content || '');
+    }
 
     // Check if content is provided and not empty
     if (!content || content.trim() === '') {

@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import './CreatePost.css';
-
 import { createPost } from '../../service/postService';
 
-const CreatePost = ({ onCreate }) => {
+const CreatePost = ({ onCreate, groupId = null }) => {
   const [postContent, setPostContent] = useState('');
+  const [visibility, setVisibility] = useState('public'); // Default to public
 
   const handleChange = (e) => {
     setPostContent(e.target.value);
+  };
+
+  const handleVisibilityChange = (e) => {
+    setVisibility(e.target.value);
   };
 
   const handlePost = async () => {
@@ -15,17 +19,18 @@ const CreatePost = ({ onCreate }) => {
       console.error("Post content is empty.");
       return;
     }
-
+  
+    // Build the payload, converting groupId to a number if provided, or default to null.
+    const payload = {
+      content: postContent,
+      visibility, // Should be either "public" or "private"
+      groupId: groupId ? Number(groupId) : null,
+    };
+  
     try {
-      // Call createPost to send the post content to the backend
-      await createPost(postContent);
-
+      await createPost(payload);
       console.log("Post created successfully!");
-
-      // Clear the post content after submission
       setPostContent('');
-
-      // Notify the parent component (Profile) to refresh the posts
       onCreate();
     } catch (error) {
       console.error("Error creating post:", error);
@@ -41,6 +46,28 @@ const CreatePost = ({ onCreate }) => {
           onChange={handleChange}
           placeholder="Share with your fellow Gators..."
         />
+        <div className="visibility-switch">
+          <label>
+            <input
+              type="radio"
+              name="visibility"
+              value="public"
+              checked={visibility === 'public'}
+              onChange={handleVisibilityChange}
+            />
+            Public
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="visibility"
+              value="private"
+              checked={visibility === 'private'}
+              onChange={handleVisibilityChange}
+            />
+            Private
+          </label>
+        </div>
         <button className="post-button" title="Share" onClick={handlePost}>
           Share
         </button>
