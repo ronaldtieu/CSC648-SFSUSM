@@ -31,7 +31,6 @@ const Home = () => {
         loadSessionData();
     }, []);
 
-
     const loadUserFeed = useCallback(async () => {
         if (!userId) return;
 
@@ -50,6 +49,8 @@ const Home = () => {
                     LastName: post.lastName, 
                     UserID: post.userId, 
                     Source: post.source,
+                    Visibility: post.visibility,
+                    GroupID: post.groupId,
                 }));
 
                 setFeedPosts(formattedPosts);

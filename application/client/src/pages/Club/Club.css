@@ -1,0 +1,37 @@
+.club-page-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .club-main-content {
+    flex: 2;
+    /* You can add further styling as needed */
+  }
+  
+  .club-members-sidebar {
+    flex: 1;
+    background-color: #f2f3f5; /* Light background for sidebar */
+    padding: 15px;
+    border-radius: 8px;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+  
+  .member-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .member-item {
+    padding: 5px 0;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  /* Optional: hover effect */
+  .member-item:hover {
+    background-color: #e1e2e6;
+  }

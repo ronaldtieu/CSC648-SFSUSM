@@ -18,6 +18,8 @@ exports.getUserFeed = (req, res) => {
             p.Content AS content, 
             p.CreatedAt AS createdAt, 
             p.UserID AS userId, 
+            p.Visibility AS visibility,
+            p.GroupID AS groupId,
             u.FirstName AS firstName, 
             u.LastName AS lastName, 
             CASE 

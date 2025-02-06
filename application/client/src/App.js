@@ -18,6 +18,7 @@ import ViewProfile from './pages/Profile/ViewProfile';
 import CreateClub from './pages/CreateClub/CreateClub';
 import ViewClubs from './pages/ViewClubs/ViewClubs';
 import Club from './pages/Club/Club'; 
+import EditClub from './pages/Club/EditClub';
 
 import './App.css';
 
@@ -70,6 +71,7 @@ const App = () => {
         <ProtectedRoute path="/create-club" component={CreateClub} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/view-clubs" component={ViewClubs} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/club/:id" component={Club} isLoggedIn={isLoggedIn} />
+        <ProtectedRoute path="/editClub/:id" component={EditClub} isLoggedIn={isLoggedIn} />
 
         <Redirect to={isLoggedIn ? "/home" : "/"} />
       </Switch>

@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { getAllGroups } from '../../service/groupService';
+import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 
 const ViewClubs = ({ token }) => {
   const [groups, setGroups] = useState([]);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const history = useHistory(); // Hook for navigation
+  const history = useHistory(); 
 
   useEffect(() => {
     const fetchGroups = async () => {
-      console.log("This is the current user ID = ", currentUserId);
       setLoading(true);
       setError('');
 
@@ -25,8 +25,8 @@ const ViewClubs = ({ token }) => {
         } else {
           setError(data.message || 'Failed to fetch clubs.');
         }
-      } catch (error) {
-        console.error('Error fetching clubs:', error);
+      } catch (err) {
+        console.error('Error fetching clubs:', err);
         setError('Something went wrong while fetching clubs.');
       } finally {
         setLoading(false);
@@ -50,25 +50,29 @@ const ViewClubs = ({ token }) => {
   return (
     <div>
       <h1>View Clubs</h1>
-      {loading && <p>Loading clubs...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {!loading && !error && groups.length === 0 && <p>No clubs available.</p>}
-      <ul>
-        {groups.map((group) => {
-          const clubId = group.ID;
-          return (
-            <li key={clubId}>
+      {loading ? (
+        <div className="loading-container">
+          <LoadingScreen />
+        </div>
+      ) : error ? (
+        <p style={{ color: 'red' }}>{error}</p>
+      ) : groups.length === 0 ? (
+        <p>No clubs available.</p>
+      ) : (
+        <ul>
+          {groups.map((group) => (
+            <li key={group.ID}>
               <span
-                onClick={() => handleClubClick(clubId)}
+                onClick={() => handleClubClick(group.ID)}
                 style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}
               >
                 <strong>{group.Name}</strong>
               </span>{' '}
               - Admin ID: {group.AdminID}
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };

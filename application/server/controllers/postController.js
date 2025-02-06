@@ -16,7 +16,7 @@ exports.createPost = (req, res) => {
         });
     }
 
-    const { content } = req.body;  // Extract content from the request body
+    const { content, visibility, groupId } = req.body;  // Extract content, visibility, and groupId from the request body
 
     // Check if content is provided and not empty
     if (!content || content.trim() === '') {
@@ -26,10 +26,24 @@ exports.createPost = (req, res) => {
         });
     }
 
-    // SQL query to insert the post into the Posts table
-    const query = `INSERT INTO Posts (UserID, Content) VALUES (?, ?)`;
+    // Validate that visibility is provided and is either "public" or "private"
+    if (!visibility || (visibility !== 'public' && visibility !== 'private')) {
+        return res.json({
+            success: false,
+            message: 'Visibility must be either "public" or "private".',
+        });
+    }
 
-    db.query(query, [userId, content], (err, results) => {
+    // Use groupId if provided; otherwise, default to null
+    const finalGroupId = groupId ? groupId : null;
+
+    // SQL query to insert the post into the Posts table, including GroupID.
+    const query = `
+        INSERT INTO Posts (UserID, GroupID, Content, Visibility)
+        VALUES (?, ?, ?, ?)
+    `;
+
+    db.query(query, [userId, finalGroupId, content, visibility], (err, results) => {
         if (err) {
             console.error('Error inserting post: ', err);
             return res.json({
@@ -56,7 +70,7 @@ exports.getUserPosts = (req, res) => {
     }
 
     const query = `
-        SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Posts.UserID, Users.FirstName, Users.LastName
+        SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Posts.UserID, Posts.Visibility, Posts.GroupID, Users.FirstName, Users.LastName
         FROM Posts
         JOIN Users ON Posts.UserID = Users.ID
         WHERE Posts.UserID = ?

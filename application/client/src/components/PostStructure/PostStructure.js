@@ -120,7 +120,6 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
         }
     };
 
-
     // If delete confirmation is active, replace entire post content with confirmation view
     if (showDeleteConfirm) {
         return (
@@ -142,6 +141,18 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
                 <div className="post-author">
                     <p>{post?.FirstName} {post?.LastName}</p>
                     <span>{post?.CreatedAt && new Date(post.CreatedAt).toLocaleString()}</span>
+                    {/* Display the post's visibility */}
+                    {post?.Visibility && (
+                        <span className="post-visibility">
+                            {post.Visibility.toUpperCase()}
+                        </span>
+                    )}
+                    {/* Display the GroupID if it exists */}
+                    {post?.GroupID && (
+                        <span className="post-group">
+                            Group ID: {post.GroupID}
+                        </span>
+                    )}
                 </div>
                 {isUserPost && (
                     <PostOptions
