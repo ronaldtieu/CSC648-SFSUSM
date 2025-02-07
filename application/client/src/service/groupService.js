@@ -99,3 +99,41 @@ export const getAllGroups = async (token) => {
     });
     return response.json();
 };
+
+// Request to join a group
+export const requestJoinGroup = async (groupId, token) => {
+    const response = await fetch(`${BASE_URL}/requestJoin`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify({ groupId })
+    });
+    return response.json();
+};
+
+// Respond to a join request (approve or decline)
+export const respondToJoinRequest = async (joinRequestId, action, token) => {
+    const response = await fetch(`${BASE_URL}/respondJoinRequest`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ joinRequestId, action })
+    });
+    return response.json();
+};
+
+// Show join requests for a group
+export const showJoinRequests = async (groupId, token) => {
+    const response = await fetch(`${BASE_URL}/showJoinRequests/${groupId}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    return response.json();
+};
