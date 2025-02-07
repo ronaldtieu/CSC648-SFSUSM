@@ -1,24 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { getAllGroups } from '../../service/groupService';
+import { getAllClubs } from '../../service/clubService';
 import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 
 const ViewClubs = ({ token }) => {
-  const [groups, setGroups] = useState([]);
+  const [clubs, setClubs] = useState([]);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const history = useHistory(); 
 
   useEffect(() => {
-    const fetchGroups = async () => {
+    const fetchClubs = async () => {
       setLoading(true);
       setError('');
-
       try {
-        const data = await getAllGroups(token);
+        const data = await getAllClubs(token);
+        console.log('getAllClubs: Data from backend:', data);
         if (data.success) {
-          setGroups(data.groups || []);
+          // If your backend returns the clubs in data.groups, use that.
+          setClubs(data.groups || []);
           if (data.currentUserId) {
             setCurrentUserId(data.currentUserId);
           }
@@ -33,7 +34,7 @@ const ViewClubs = ({ token }) => {
       }
     };
 
-    fetchGroups();
+    fetchClubs();
   }, [token]);
 
   useEffect(() => {
@@ -56,19 +57,19 @@ const ViewClubs = ({ token }) => {
         </div>
       ) : error ? (
         <p style={{ color: 'red' }}>{error}</p>
-      ) : groups.length === 0 ? (
+      ) : clubs.length === 0 ? (
         <p>No clubs available.</p>
       ) : (
         <ul>
-          {groups.map((group) => (
-            <li key={group.ID}>
+          {clubs.map((club) => (
+            <li key={club.ID}>
               <span
-                onClick={() => handleClubClick(group.ID)}
+                onClick={() => handleClubClick(club.ID)}
                 style={{ cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}
               >
-                <strong>{group.Name}</strong>
+                <strong>{club.Name}</strong>
               </span>{' '}
-              - Admin ID: {group.AdminID}
+              - Admin ID: {club.AdminID}
             </li>
           ))}
         </ul>

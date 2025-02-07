@@ -1,5 +1,3 @@
-// clubService.js
-
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000/groups';
 
 // Helper function to get headers with the authorization token
@@ -9,31 +7,20 @@ const getAuthHeaders = (token) => ({
 });
 
 // Create a new club
-export const createClub = async (clubName, token) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/create`, {
-      method: 'POST',
-      headers: getAuthHeaders(token),
-      credentials: 'include',
-      body: JSON.stringify({ groupName: clubName }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to create club. Status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('createClub: Data from backend:', data);
-
-    if (!data.success) {
-      throw new Error(data.message || 'Failed to create club.');
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error in createClub:', error);
-    throw error;
-  }
+export const createClub = async (clubName, description, token) => {
+  // Log the payload to verify values are present
+  console.log('createClub payload:', { groupName: clubName, description });
+  
+  const response = await fetch(`${API_BASE_URL}/create`, {
+    method: 'POST',
+    headers: getAuthHeaders(token),
+    credentials: 'include',
+    body: JSON.stringify({ groupName: clubName, description })
+  });
+  
+  const data = await response.json();
+  console.log('createClub: Data from backend:', data);
+  return data;
 };
 
 // Update club information
@@ -205,29 +192,14 @@ export const getClubPosts = async (clubId, token) => {
 
 // Get all clubs
 export const getAllClubs = async (token) => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/getAllGroups`, {
-      method: 'GET',
-      headers: getAuthHeaders(token),
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch clubs. Status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('getAllClubs: Data from backend:', data);
-
-    if (!data.success) {
-      throw new Error(data.message || 'Failed to fetch clubs.');
-    }
-
-    return data.groups;
-  } catch (error) {
-    console.error('Error in getAllClubs:', error);
-    throw error;
-  }
+  const response = await fetch(`${API_BASE_URL}/getAllGroups`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    credentials: 'include'
+  });
+  return response.json();
 };
 
 // Get all members of a club
@@ -283,3 +255,41 @@ export const getClubById = async (clubId, token) => {
       throw error;
     }
   };
+
+  // Request to join a group
+export const requestJoinGroup = async (groupId, token) => {
+  const response = await fetch(`${BASE_URL}/requestJoin`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include',
+      body: JSON.stringify({ groupId })
+  });
+  return response.json();
+};
+
+// Respond to a join request (approve or decline)
+export const respondToJoinRequest = async (joinRequestId, action, token) => {
+  const response = await fetch(`${BASE_URL}/respondJoinRequest`, {
+      method: 'PUT',
+      headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ joinRequestId, action })
+  });
+  return response.json();
+};
+
+// Show join requests for a group
+export const showJoinRequests = async (groupId, token) => {
+  const response = await fetch(`${BASE_URL}/showJoinRequests/${groupId}`, {
+      method: 'GET',
+      headers: {
+          'Authorization': `Bearer ${token}`
+      }
+  });
+  return response.json();
+};

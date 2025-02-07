@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './CreateClub.css'; 
-import { createGroup } from '../../service/groupService'; 
+import { createClub } from '../../service/clubService'; 
 
 const CreateClub = ({ token }) => {
   const [clubPicture, setClubPicture] = useState(null);
@@ -29,7 +29,8 @@ const CreateClub = ({ token }) => {
     setError('');
 
     try {
-      const response = await createGroup(clubName, token);
+      // Call createClub with clubName and description along with token
+      const response = await createClub(clubName, description, token);
       
       if (response.success) {
         setSuccess('Club created successfully!');

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useHistory } from 'react-router-dom';
-import { getClubById } from '../../service/clubService';
+import { getClubById, requestJoinGroup, showJoinRequests, respondToJoinRequest } from '../../service/clubService';
 import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 import PostStructure from '../../components/PostStructure/PostStructure';
 import CreatePost from '../../components/CreatePost/CreatePost';
@@ -18,6 +18,7 @@ const Club = ({ token }) => {
   const [error, setError] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMember, setIsMember] = useState(false);
+  const [joinRequests, setJoinRequests] = useState([]);
 
   // Function to fetch club details (including posts and members)
   const fetchClub = async () => {
@@ -45,6 +46,21 @@ const Club = ({ token }) => {
     }
   };
 
+  // Fetch join requests if the user is admin
+  const fetchJoinRequests = async () => {
+    if (!club) return;
+    try {
+      const res = await showJoinRequests(club.ID, token);
+      if (res.success) {
+        setJoinRequests(res.joinRequests);
+      } else {
+        console.error(res.message);
+      }
+    } catch (err) {
+      console.error('Error fetching join requests:', err);
+    }
+  };
+
   useEffect(() => {
     if (!userId) {
       console.warn('No userId provided in location state');
@@ -52,6 +68,13 @@ const Club = ({ token }) => {
     }
     fetchClub();
   }, [id, token, userId]);
+
+  // When club data changes and the user is admin, load join requests
+  useEffect(() => {
+    if (isAdmin && club) {
+      fetchJoinRequests();
+    }
+  }, [isAdmin, club, token]);
 
   const handleEdit = () => {
     history.push(`/editClub/${id}`, { club, userId });
@@ -61,6 +84,38 @@ const Club = ({ token }) => {
   const handleCreatePost = async () => {
     console.log('Post created in club!');
     await fetchClub();
+  };
+
+  // Request to join the group (for non-members)
+  const handleRequestJoin = async () => {
+    try {
+      const res = await requestJoinGroup(club.ID, token);
+      if (res.success) {
+        alert('Join request sent successfully.');
+        // Optionally, refresh club details if needed.
+        fetchClub();
+      } else {
+        alert(res.message);
+      }
+    } catch (err) {
+      console.error('Error requesting to join:', err);
+    }
+  };
+
+  // Admin responds to a join request (approve or decline)
+  const handleRespondJoin = async (joinRequestId, action) => {
+    try {
+      const res = await respondToJoinRequest(joinRequestId, action, token);
+      if (res.success) {
+        alert(res.message);
+        fetchJoinRequests(); // Refresh join requests after response.
+        fetchClub();         // Optionally, refresh club data.
+      } else {
+        alert(res.message);
+      }
+    } catch (err) {
+      console.error('Error responding to join request:', err);
+    }
   };
 
   if (loading) {
@@ -73,7 +128,7 @@ const Club = ({ token }) => {
   if (error) return <p style={{ color: 'red' }}>{error}</p>;
   if (!club) return <p>No club found.</p>;
 
-  // If the user is not a member, only show public posts
+  // Filter posts: if the user is not a member, only show public posts
   const postsToShow = isMember
     ? club.posts
     : club.posts.filter(post => post.visibility === 'public');
@@ -95,7 +150,38 @@ const Club = ({ token }) => {
         <p>Admin ID: {club.AdminID}</p>
         <p>Current User ID: {userId}</p>
 
-        {/* Only members can create posts */}
+        {/* Show join request button for non-members */}
+        {(!isMember && !isAdmin) && (
+          <div className="join-request-container">
+            <button onClick={handleRequestJoin}>Request to Join</button>
+          </div>
+        )}
+
+        {/* If admin, show join requests */}
+        {isAdmin && (
+          <div className="join-requests-section">
+            <h3>Join Requests</h3>
+            {joinRequests && joinRequests.length > 0 ? (
+              <ul className="join-request-list">
+                {joinRequests.map((req) => (
+                  <li key={req.joinRequestId} className="join-request-item">
+                    <span>{req.FirstName} {req.LastName} ({req.Email})</span>
+                    <button onClick={() => handleRespondJoin(req.joinRequestId, 'approved')}>
+                      Approve
+                    </button>
+                    <button onClick={() => handleRespondJoin(req.joinRequestId, 'declined')}>
+                      Decline
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No join requests at the moment.</p>
+            )}
+          </div>
+        )}
+
+        {/* Only members see the Create Post section */}
         {isMember && (
           <div className="create-post-container">
             <h3>Create a Post</h3>
