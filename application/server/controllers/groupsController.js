@@ -486,7 +486,7 @@ exports.getGroupById = (req, res) => {
             group.members = memberResults;
   
             const postsQuery = `
-              SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Users.FirstName, Users.LastName
+              SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Posts.visibility, Users.FirstName, Users.LastName
               FROM Posts
               JOIN Users ON Posts.UserID = Users.ID
               WHERE Posts.GroupID = ?
@@ -516,3 +516,174 @@ exports.getGroupById = (req, res) => {
     });
 };
 
+// Request to Join a Group
+exports.requestToJoinGroup = (req, res) => {
+    const { groupId } = req.body;
+    const userId = req.userId;  // Assume req.userId was set via your auth middleware
+
+    if (!groupId) {
+        return res.json({
+            success: false,
+            message: 'Group ID is required.'
+        });
+    }
+
+    // Insert a new join request
+    const query = `
+        INSERT INTO GroupJoinRequests (GroupID, UserID)
+        VALUES (?, ?)
+    `;
+    db.query(query, [groupId, userId], (err, result) => {
+        if (err) {
+            // Handle duplicate entry error if user already requested membership
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.json({
+                    success: false,
+                    message: 'You have already requested to join this group.'
+                });
+            }
+            console.error('Error creating join request:', err);
+            return res.json({
+                success: false,
+                message: 'Failed to send join request.'
+            });
+        }
+        res.json({
+            success: true,
+            message: 'Join request sent successfully.'
+        });
+    });
+};
+
+// Approve or Decline a Join Request
+exports.respondToJoinRequest = (req, res) => {
+    const { joinRequestId, action } = req.body; // action should be 'approved' or 'declined'
+    const adminId = req.userId;
+    
+    // First, verify that the current user is the admin of the group
+    const adminCheckQuery = `
+        SELECT Groups.AdminID FROM Groups
+        JOIN GroupJoinRequests ON Groups.ID = GroupJoinRequests.GroupID
+        WHERE GroupJoinRequests.ID = ?
+    `;
+    db.query(adminCheckQuery, [joinRequestId], (err, results) => {
+        if (err || results.length === 0) {
+            return res.json({
+                success: false,
+                message: 'Join request not found or error occurred.'
+            });
+        }
+        
+        if (results[0].AdminID !== adminId) {
+            return res.json({
+                success: false,
+                message: 'Only the group admin can respond to join requests.'
+            });
+        }
+        
+        // Update the join request status
+        const updateQuery = `
+            UPDATE GroupJoinRequests SET Status = ? WHERE ID = ?
+        `;
+        db.query(updateQuery, [action, joinRequestId], (err, result) => {
+            if (err) {
+                console.error('Error updating join request:', err);
+                return res.json({
+                    success: false,
+                    message: 'Failed to update join request.'
+                });
+            }
+            
+            // Optionally, if approved, insert the user into the GroupMembers table
+            if (action === 'approved') {
+                const insertQuery = `
+                    INSERT INTO GroupMembers (GroupID, UserID, Role)
+                    SELECT GroupID, UserID, 'member'
+                    FROM GroupJoinRequests WHERE ID = ?
+                `;
+                db.query(insertQuery, [joinRequestId], (err, result) => {
+                    if (err) {
+                        console.error('Error adding member:', err);
+                        return res.json({
+                            success: false,
+                            message: 'Join request approved but failed to add member.'
+                        });
+                    }
+                    return res.json({
+                        success: true,
+                        message: 'Join request approved and member added.'
+                    });
+                });
+            } else {
+                res.json({
+                    success: true,
+                    message: 'Join request has been declined.'
+                });
+            }
+        });
+    });
+};
+
+exports.showJoinRequests = (req, res) => {
+    const { groupId } = req.params;  
+    const adminId = req.userId;
+  
+    if (!groupId) {
+      return res.json({
+        success: false,
+        message: 'Group ID is required.'
+      });
+    }
+  
+    // First, verify that the current user is the admin of the group
+    const adminQuery = `
+      SELECT AdminID FROM \`Groups\`
+      WHERE ID = ?
+    `;
+    db.query(adminQuery, [groupId], (err, results) => {
+      if (err || results.length === 0) {
+        console.error('Error checking group admin:', err);
+        return res.json({
+          success: false,
+          message: 'Group not found or error occurred.'
+        });
+      }
+  
+      if (results[0].AdminID !== adminId) {
+        return res.json({
+          success: false,
+          message: 'Only the group admin can view join requests.'
+        });
+      }
+  
+      // Now fetch pending join requests for the group, along with user details
+      const joinRequestsQuery = `
+        SELECT 
+          GJR.ID AS joinRequestId,
+          GJR.GroupID,
+          GJR.UserID,
+          GJR.Status,
+          GJR.CreatedAt,
+          U.FirstName,
+          U.LastName,
+          U.Email
+        FROM GroupJoinRequests AS GJR
+        JOIN Users AS U ON GJR.UserID = U.ID
+        WHERE GJR.GroupID = ? AND GJR.Status = 'pending'
+        ORDER BY GJR.CreatedAt ASC
+      `;
+      db.query(joinRequestsQuery, [groupId], (err, requests) => {
+        if (err) {
+          console.error('Error retrieving join requests:', err);
+          return res.json({
+            success: false,
+            message: 'Failed to retrieve join requests.'
+          });
+        }
+        return res.json({
+          success: true,
+          joinRequests: requests
+        });
+      });
+    });
+  };

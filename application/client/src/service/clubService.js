@@ -37,13 +37,13 @@ export const createClub = async (clubName, token) => {
 };
 
 // Update club information
-export const updateClub = async (clubId, clubName, token) => {
+export const updateClub = async ({ clubId, clubName, description }, token) => {
   try {
     const response = await fetch(`${API_BASE_URL}/update`, {
       method: 'PUT',
       headers: getAuthHeaders(token),
       credentials: 'include',
-      body: JSON.stringify({ groupId: clubId, groupName }),
+      body: JSON.stringify({ groupId: clubId, groupName: clubName, description }),
     });
 
     if (!response.ok) {
