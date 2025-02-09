@@ -205,76 +205,84 @@ exports.addMember = (req, res) => {
 
 // Remove a Member from the Group (Admin only)
 exports.removeMember = (req, res) => {
-    const { groupId, userId } = req.body;
-    const adminId = req.userId;  // Admin ID from session
+const { groupId, userId } = req.body;
+const adminId = req.userId;
 
-    if (!groupId || !userId) {
-        return res.json({
-            success: false,
-            message: 'Group ID and user ID are required.',
-        });
+if (!groupId || !userId) {
+return res.json({
+success: false,
+message: 'Group ID and user ID are required.',
+});
+}
+
+// Prevent the admin from removing themselves
+if (Number(userId) === Number(adminId)) {
+return res.json({
+success: false,
+message: 'Admin cannot remove themselves from the group.',
+});
+}
+
+const checkAdminQuery = `
+SELECT AdminID FROM \`Groups\` WHERE ID = ?
+`;
+
+db.query(checkAdminQuery, [groupId], (err, result) => {
+if (err) {
+console.error('Error checking admin status:', err);
+return res.json({
+    success: false,
+    message: 'Failed to verify admin status.',
+});
+}
+
+if (result.length === 0 || result[0].AdminID !== adminId) {
+return res.json({
+    success: false,
+    message: 'Only the admin can remove members from the group.',
+});
+}
+
+const checkMemberQuery = `
+    SELECT * FROM GroupMembers WHERE GroupID = ? AND UserID = ?
+`;
+
+db.query(checkMemberQuery, [groupId, userId], (err, memberResult) => {
+if (err) {
+    console.error('Error checking member status:', err);
+    return res.json({
+    success: false,
+    message: 'Failed to verify membership status.',
+    });
+}
+
+if (memberResult.length === 0) {
+    return res.json({
+    success: false,
+    message: 'User not found in the group.',
+    });
+}
+
+const removeMemberQuery = `
+    DELETE FROM GroupMembers WHERE GroupID = ? AND UserID = ?
+`;
+
+db.query(removeMemberQuery, [groupId, userId], (err, removeResult) => {
+    if (err) {
+    console.error('Error removing member from group:', err);
+    return res.json({
+        success: false,
+        message: 'Failed to remove member from group.',
+    });
     }
 
-    const checkAdminQuery = `
-        SELECT AdminID FROM \`Groups\` WHERE ID = ?
-    `;
-
-    db.query(checkAdminQuery, [groupId], (err, result) => {
-        if (err) {
-            console.error('Error checking admin status:', err);
-            return res.json({
-                success: false,
-                message: 'Failed to verify admin status.',
-            });
-        }
-
-        if (result.length === 0 || result[0].AdminID !== adminId) {
-            return res.json({
-                success: false,
-                message: 'Only the admin can remove members from the group.',
-            });
-        }
-
-        const checkMemberQuery = `
-            SELECT * FROM GroupMembers WHERE GroupID = ? AND UserID = ?
-        `;
-
-        db.query(checkMemberQuery, [groupId, userId], (err, memberResult) => {
-            if (err) {
-                console.error('Error checking member status:', err);
-                return res.json({
-                    success: false,
-                    message: 'Failed to verify membership status.',
-                });
-            }
-
-            if (memberResult.length === 0) {
-                return res.json({
-                    success: false,
-                    message: 'User not found in the group.',
-                });
-            }
-
-            const removeMemberQuery = `
-                DELETE FROM GroupMembers WHERE GroupID = ? AND UserID = ?
-            `;
-
-            db.query(removeMemberQuery, [groupId, userId], (err, removeResult) => {
-                if (err) {
-                    console.error('Error removing member from group:', err);
-                    return res.json({
-                        success: false,
-                        message: 'Failed to remove member from group.',
-                    });
-                }
-
-                res.json({
-                    success: true,
-                    message: 'Member removed from the group successfully.',
-                });
-            });
-        });
+    res.json({
+    success: true,
+    message: 'Member removed from the group successfully.',
     });
+});
+});
+});
 };
 
 // Get Group Details
@@ -519,114 +527,7 @@ exports.getGroupById = (req, res) => {
 // Request to Join a Group
 exports.requestToJoinGroup = (req, res) => {
     const { groupId } = req.body;
-    const userId = req.userId;  // Assume req.userId was set via your auth middleware
-
-    if (!groupId) {
-        return res.json({
-            success: false,
-            message: 'Group ID is required.'
-        });
-    }
-
-    // Insert a new join request
-    const query = `
-        INSERT INTO GroupJoinRequests (GroupID, UserID)
-        VALUES (?, ?)
-    `;
-    db.query(query, [groupId, userId], (err, result) => {
-        if (err) {
-            // Handle duplicate entry error if user already requested membership
-            if (err.code === 'ER_DUP_ENTRY') {
-                return res.json({
-                    success: false,
-                    message: 'You have already requested to join this group.'
-                });
-            }
-            console.error('Error creating join request:', err);
-            return res.json({
-                success: false,
-                message: 'Failed to send join request.'
-            });
-        }
-        res.json({
-            success: true,
-            message: 'Join request sent successfully.'
-        });
-    });
-};
-
-// Approve or Decline a Join Request
-exports.respondToJoinRequest = (req, res) => {
-    const { joinRequestId, action } = req.body; // action should be 'approved' or 'declined'
-    const adminId = req.userId;
-    
-    // First, verify that the current user is the admin of the group
-    const adminCheckQuery = `
-        SELECT Groups.AdminID FROM Groups
-        JOIN GroupJoinRequests ON Groups.ID = GroupJoinRequests.GroupID
-        WHERE GroupJoinRequests.ID = ?
-    `;
-    db.query(adminCheckQuery, [joinRequestId], (err, results) => {
-        if (err || results.length === 0) {
-            return res.json({
-                success: false,
-                message: 'Join request not found or error occurred.'
-            });
-        }
-        
-        if (results[0].AdminID !== adminId) {
-            return res.json({
-                success: false,
-                message: 'Only the group admin can respond to join requests.'
-            });
-        }
-        
-        // Update the join request status
-        const updateQuery = `
-            UPDATE GroupJoinRequests SET Status = ? WHERE ID = ?
-        `;
-        db.query(updateQuery, [action, joinRequestId], (err, result) => {
-            if (err) {
-                console.error('Error updating join request:', err);
-                return res.json({
-                    success: false,
-                    message: 'Failed to update join request.'
-                });
-            }
-            
-            // Optionally, if approved, insert the user into the GroupMembers table
-            if (action === 'approved') {
-                const insertQuery = `
-                    INSERT INTO GroupMembers (GroupID, UserID, Role)
-                    SELECT GroupID, UserID, 'member'
-                    FROM GroupJoinRequests WHERE ID = ?
-                `;
-                db.query(insertQuery, [joinRequestId], (err, result) => {
-                    if (err) {
-                        console.error('Error adding member:', err);
-                        return res.json({
-                            success: false,
-                            message: 'Join request approved but failed to add member.'
-                        });
-                    }
-                    return res.json({
-                        success: true,
-                        message: 'Join request approved and member added.'
-                    });
-                });
-            } else {
-                res.json({
-                    success: true,
-                    message: 'Join request has been declined.'
-                });
-            }
-        });
-    });
-};
-
-exports.showJoinRequests = (req, res) => {
-    const { groupId } = req.params;  
-    const adminId = req.userId;
+    const userId = req.userId;
   
     if (!groupId) {
       return res.json({
@@ -635,55 +536,185 @@ exports.showJoinRequests = (req, res) => {
       });
     }
   
-    // First, verify that the current user is the admin of the group
-    const adminQuery = `
-      SELECT AdminID FROM \`Groups\`
-      WHERE ID = ?
+    const query = `
+      INSERT INTO GroupJoinRequests (GroupID, UserID, Status)
+      VALUES (?, ?, 'pending')
     `;
-    db.query(adminQuery, [groupId], (err, results) => {
-      if (err || results.length === 0) {
-        console.error('Error checking group admin:', err);
-        return res.json({
-          success: false,
-          message: 'Group not found or error occurred.'
-        });
-      }
-  
-      if (results[0].AdminID !== adminId) {
-        return res.json({
-          success: false,
-          message: 'Only the group admin can view join requests.'
-        });
-      }
-  
-      // Now fetch pending join requests for the group, along with user details
-      const joinRequestsQuery = `
-        SELECT 
-          GJR.ID AS joinRequestId,
-          GJR.GroupID,
-          GJR.UserID,
-          GJR.Status,
-          GJR.CreatedAt,
-          U.FirstName,
-          U.LastName,
-          U.Email
-        FROM GroupJoinRequests AS GJR
-        JOIN Users AS U ON GJR.UserID = U.ID
-        WHERE GJR.GroupID = ? AND GJR.Status = 'pending'
-        ORDER BY GJR.CreatedAt ASC
-      `;
-      db.query(joinRequestsQuery, [groupId], (err, requests) => {
-        if (err) {
-          console.error('Error retrieving join requests:', err);
+    db.query(query, [groupId, userId], (err, result) => {
+      if (err) {
+        // Handle duplicate entry error if the user already requested membership
+        if (err.code === 'ER_DUP_ENTRY') {
           return res.json({
             success: false,
-            message: 'Failed to retrieve join requests.'
+            message: 'You have already requested to join this group.'
           });
         }
+        console.error('Error creating join request:', err);
         return res.json({
-          success: true,
-          joinRequests: requests
+          success: false,
+          message: 'Failed to send join request.'
         });
+      }
+      return res.json({
+        success: true,
+        message: 'Join request sent successfully.'
       });
     });
   };
+  
+// Approve or Decline a Join Request
+exports.respondToJoinRequest = (req, res) => {
+const { joinRequestId, action } = req.body; // action should be 'approved' or 'declined'
+const adminId = req.userId;
+
+// Validate input
+if (!joinRequestId || !action || !['approved', 'declined'].includes(action)) {
+    return res.json({
+    success: false,
+    message: 'Invalid parameters.'
+    });
+}
+
+// Verify that the current user is the admin of the group that the join request belongs to.
+// Note: We wrap `Groups` in backticks because it is a reserved word.
+const adminCheckQuery = `
+    SELECT 
+    \`Groups\`.AdminID,
+    GroupJoinRequests.GroupID,
+    GroupJoinRequests.UserID
+    FROM \`Groups\`
+    JOIN GroupJoinRequests ON \`Groups\`.ID = GroupJoinRequests.GroupID
+    WHERE GroupJoinRequests.ID = ?
+`;
+db.query(adminCheckQuery, [joinRequestId], (err, results) => {
+    if (err) {
+    console.error('Error during admin check:', err);
+    return res.json({
+        success: false,
+        message: 'Error occurred while checking join request.'
+    });
+    }
+    if (results.length === 0) {
+    return res.json({
+        success: false,
+        message: 'Join request not found.'
+    });
+    }
+    if (results[0].AdminID !== adminId) {
+    return res.json({
+        success: false,
+        message: 'Only the group admin can respond to join requests.'
+    });
+    }
+
+    // Update the join request status
+    const updateQuery = `
+    UPDATE GroupJoinRequests
+    SET Status = ?
+    WHERE ID = ?
+    `;
+    db.query(updateQuery, [action, joinRequestId], (err, updateResult) => {
+    if (err) {
+        console.error('Error updating join request:', err);
+        return res.json({
+        success: false,
+        message: 'Failed to update join request.'
+        });
+    }
+
+    // If approved, add the user to the GroupMembers table
+    if (action === 'approved') {
+        // Make sure the GroupMembers table exists with GroupID, UserID, and Role columns.
+        const insertQuery = `
+        INSERT INTO GroupMembers (GroupID, UserID, Role)
+        VALUES (?, ?, 'member')
+        `;
+        const groupId = results[0].GroupID;
+        const userId = results[0].UserID;
+        db.query(insertQuery, [groupId, userId], (err, insertResult) => {
+        if (err) {
+            console.error('Error adding member:', err);
+            return res.json({
+            success: false,
+            message: 'Join request approved but failed to add member.'
+            });
+        }
+        return res.json({
+            success: true,
+            message: 'Join request approved and member added.'
+        });
+        });
+    } else {
+        // For a declined request, simply return a success message.
+        return res.json({
+        success: true,
+        message: 'Join request has been declined.'
+        });
+    }
+    });
+});
+};
+
+// Show Join Requests (for group admins)
+exports.showJoinRequests = (req, res) => {
+const { groupId } = req.params;
+const adminId = req.userId;
+
+if (!groupId) {
+    return res.json({
+    success: false,
+    message: 'Group ID is required.'
+    });
+}
+
+// Verify that the current user is the admin of the group.
+const adminQuery = `
+    SELECT AdminID FROM \`Groups\`
+    WHERE ID = ?
+`;
+db.query(adminQuery, [groupId], (err, results) => {
+    if (err || results.length === 0) {
+    console.error('Error checking group admin:', err);
+    return res.json({
+        success: false,
+        message: 'Group not found or error occurred.'
+    });
+    }
+    if (results[0].AdminID !== adminId) {
+    return res.json({
+        success: false,
+        message: 'Only the group admin can view join requests.'
+    });
+    }
+
+    // Fetch pending join requests for the group, along with user details.
+    const joinRequestsQuery = `
+    SELECT 
+        GJR.ID AS joinRequestId,
+        GJR.GroupID,
+        GJR.UserID,
+        GJR.Status,
+        GJR.CreatedAt,
+        U.FirstName,
+        U.LastName,
+        U.Email
+    FROM GroupJoinRequests AS GJR
+    JOIN Users AS U ON GJR.UserID = U.ID
+    WHERE GJR.GroupID = ? AND GJR.Status = 'pending'
+    ORDER BY GJR.CreatedAt ASC
+    `;
+    db.query(joinRequestsQuery, [groupId], (err, requests) => {
+    if (err) {
+        console.error('Error retrieving join requests:', err);
+        return res.json({
+        success: false,
+        message: 'Failed to retrieve join requests.'
+        });
+    }
+    return res.json({
+        success: true,
+        joinRequests: requests
+    });
+    });
+});
+};

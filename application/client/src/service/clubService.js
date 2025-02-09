@@ -3,12 +3,11 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000/gro
 // Helper function to get headers with the authorization token
 const getAuthHeaders = (token) => ({
   'Content-Type': 'application/json',
-  Authorization: token,
+  Authorization: `Bearer ${token}`,
 });
 
 // Create a new club
 export const createClub = async (clubName, description, token) => {
-  // Log the payload to verify values are present
   console.log('createClub payload:', { groupName: clubName, description });
   
   const response = await fetch(`${API_BASE_URL}/create`, {
@@ -256,40 +255,43 @@ export const getClubById = async (clubId, token) => {
     }
   };
 
-  // Request to join a group
-export const requestJoinGroup = async (groupId, token) => {
-  const response = await fetch(`${BASE_URL}/requestJoin`, {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-      },
-      credentials: 'include',
-      body: JSON.stringify({ groupId })
+// Request to join a group
+export const requestJoinClub = async (groupId, token) => {
+  const response = await fetch(`${API_BASE_URL}/requestJoin`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    credentials: 'include',
+    body: JSON.stringify({ groupId })
   });
   return response.json();
 };
 
 // Respond to a join request (approve or decline)
 export const respondToJoinRequest = async (joinRequestId, action, token) => {
-  const response = await fetch(`${BASE_URL}/respondJoinRequest`, {
-      method: 'PUT',
-      headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ joinRequestId, action })
+  const response = await fetch(`${API_BASE_URL}/respondJoinRequest`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ joinRequestId, action })
   });
   return response.json();
 };
 
 // Show join requests for a group
 export const showJoinRequests = async (groupId, token) => {
-  const response = await fetch(`${BASE_URL}/showJoinRequests/${groupId}`, {
-      method: 'GET',
-      headers: {
-          'Authorization': `Bearer ${token}`
-      }
+  const response = await fetch(`${API_BASE_URL}/showJoinRequests/${groupId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    credentials: 'include'
   });
   return response.json();
 };
+

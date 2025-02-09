@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useHistory } from 'react-router-dom';
-import { getClubById, requestJoinGroup, showJoinRequests, respondToJoinRequest } from '../../service/clubService';
+import { 
+  getClubById, 
+  requestJoinClub, 
+  showJoinRequests, 
+  respondToJoinRequest 
+} from '../../service/clubService';
 import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 import PostStructure from '../../components/PostStructure/PostStructure';
 import CreatePost from '../../components/CreatePost/CreatePost';
@@ -11,7 +16,12 @@ const Club = ({ token }) => {
   const { id } = useParams();
   const location = useLocation();
   const history = useHistory();
-  const userId = location.state?.userId;
+  
+  // Use the passed token or fallback to localStorage
+  const authToken = token || localStorage.getItem('token');
+
+  // Convert userId from location.state to a number for consistent comparison.
+  const userId = location.state?.userId ? Number(location.state.userId) : null;
 
   const [club, setClub] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,10 +35,10 @@ const Club = ({ token }) => {
     setLoading(true);
     setError('');
     try {
-      const data = await getClubById(id, token);
+      const data = await getClubById(id, authToken);
       if (data) {
         setClub(data);
-        // Determine if the current user is admin or member
+        // Determine if the current user is admin or member (comparing numbers)
         if (data.AdminID === userId) {
           setIsAdmin(true);
           setIsMember(true);
@@ -50,7 +60,7 @@ const Club = ({ token }) => {
   const fetchJoinRequests = async () => {
     if (!club) return;
     try {
-      const res = await showJoinRequests(club.ID, token);
+      const res = await showJoinRequests(club.ID, authToken);
       if (res.success) {
         setJoinRequests(res.joinRequests);
       } else {
@@ -61,26 +71,27 @@ const Club = ({ token }) => {
     }
   };
 
+  // Fetch club details on mount
   useEffect(() => {
     if (!userId) {
       console.warn('No userId provided in location state');
       return;
     }
     fetchClub();
-  }, [id, token, userId]);
+  }, [id, authToken, userId]);
 
   // When club data changes and the user is admin, load join requests
   useEffect(() => {
     if (isAdmin && club) {
       fetchJoinRequests();
     }
-  }, [isAdmin, club, token]);
+  }, [isAdmin, club, authToken]);
 
   const handleEdit = () => {
     history.push(`/editClub/${id}`, { club, userId });
   };
 
-  // When a new post is created, refresh the club data
+  // Refresh club data when a new post is created
   const handleCreatePost = async () => {
     console.log('Post created in club!');
     await fetchClub();
@@ -89,10 +100,9 @@ const Club = ({ token }) => {
   // Request to join the group (for non-members)
   const handleRequestJoin = async () => {
     try {
-      const res = await requestJoinGroup(club.ID, token);
+      const res = await requestJoinClub(club.ID, authToken);
       if (res.success) {
         alert('Join request sent successfully.');
-        // Optionally, refresh club details if needed.
         fetchClub();
       } else {
         alert(res.message);
@@ -104,8 +114,9 @@ const Club = ({ token }) => {
 
   // Admin responds to a join request (approve or decline)
   const handleRespondJoin = async (joinRequestId, action) => {
+    console.log("Responding to join request id:", joinRequestId, "with action:", action);
     try {
-      const res = await respondToJoinRequest(joinRequestId, action, token);
+      const res = await respondToJoinRequest(joinRequestId, action, authToken);
       if (res.success) {
         alert(res.message);
         fetchJoinRequests(); // Refresh join requests after response.
@@ -165,7 +176,9 @@ const Club = ({ token }) => {
               <ul className="join-request-list">
                 {joinRequests.map((req) => (
                   <li key={req.joinRequestId} className="join-request-item">
-                    <span>{req.FirstName} {req.LastName} ({req.Email})</span>
+                    <span>
+                      {req.FirstName} {req.LastName} ({req.Email})
+                    </span>
                     <button onClick={() => handleRespondJoin(req.joinRequestId, 'approved')}>
                       Approve
                     </button>
@@ -196,10 +209,8 @@ const Club = ({ token }) => {
             <ul className="post-list">
               {postsToShow.map((post) => (
                 <li key={post.ID} className="post-item">
-                  <PostStructure post={post} token={token} userId={userId} />
-                  <p className="post-visibility">
-                    Visibility: {post.visibility}
-                  </p>
+                  <PostStructure post={post} token={authToken} userId={userId} />
+                  <p className="post-visibility">Visibility: {post.visibility}</p>
                 </li>
               ))}
             </ul>
