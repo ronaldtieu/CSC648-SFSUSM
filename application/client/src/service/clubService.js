@@ -295,3 +295,11 @@ export const showJoinRequests = async (groupId, token) => {
   return response.json();
 };
 
+export const checkJoinRequestStatus = async (groupId, token) => {
+  const response = await fetch(`${API_BASE_URL}/checkJoinRequestStatus/${groupId}`, {
+    method: 'GET',
+    headers: getAuthHeaders(token),
+    credentials: 'include'
+  });
+  return response.json();
+};

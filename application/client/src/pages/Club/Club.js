@@ -4,7 +4,8 @@ import {
   getClubById, 
   requestJoinClub, 
   showJoinRequests, 
-  respondToJoinRequest 
+  respondToJoinRequest,
+  checkJoinRequestStatus  // NEW: Import the service function
 } from '../../service/clubService';
 import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 import PostStructure from '../../components/PostStructure/PostStructure';
@@ -20,7 +21,7 @@ const Club = ({ token }) => {
   // Use the passed token or fallback to localStorage
   const authToken = token || localStorage.getItem('token');
 
-  // Convert userId from location.state to a number for consistent comparison.
+  // Convert userId from location.state for consistent comparison.
   const userId = location.state?.userId ? Number(location.state.userId) : null;
 
   const [club, setClub] = useState(null);
@@ -72,6 +73,21 @@ const Club = ({ token }) => {
     }
   };
 
+  // Check if the current user already has a pending join request
+  const fetchJoinRequestStatus = async () => {
+    if (!club) return;
+    try {
+      const res = await checkJoinRequestStatus(club.ID, authToken);
+      if (res.success && res.pending) {
+        setRequestPending(true);
+      } else {
+        setRequestPending(false);
+      }
+    } catch (err) {
+      console.error('Error checking join request status:', err);
+    }
+  };
+
   // Fetch club details on mount
   useEffect(() => {
     if (!userId) {
@@ -81,12 +97,18 @@ const Club = ({ token }) => {
     fetchClub();
   }, [id, authToken, userId]);
 
-  // When club data changes and the user is admin, load join requests
+  // When club data changes:
+  // - If the user is admin, load join requests.
+  // - Otherwise (non-member), check join request status.
   useEffect(() => {
-    if (isAdmin && club) {
-      fetchJoinRequests();
+    if (club) {
+      if (isAdmin) {
+        fetchJoinRequests();
+      } else if (!isMember) {
+        fetchJoinRequestStatus();
+      }
     }
-  }, [isAdmin, club, authToken]);
+  }, [club, isAdmin, isMember, authToken]);
 
   const handleEdit = () => {
     history.push(`/editClub/${id}`, { club, userId });
@@ -104,7 +126,8 @@ const Club = ({ token }) => {
       const res = await requestJoinClub(club.ID, authToken);
       if (res.success) {
         alert('Join request sent successfully.');
-        setRequestPending(true);
+        // After requesting join, check status to update UI.
+        fetchJoinRequestStatus();
         fetchClub();
       } else {
         alert(res.message);
