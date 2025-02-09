@@ -56,11 +56,70 @@ exports.createPost = (req, res) => {
             });
         }
 
-        // If post was successfully created, return success message and postId
-        res.json({
-            success: true,
-            message: 'Post created successfully!',
-            postId: results.insertId  // Return the ID of the newly created post
+        const postId = results.insertId;
+        // Extract hashtags from the post content.
+        const hashtags = extractHashtags(content);
+
+        // If no hashtags, return the success response immediately.
+        if (hashtags.length === 0) {
+            return res.json({
+                success: true,
+                message: 'Post created successfully!',
+                postId: postId
+            });
+        }
+
+        let processedCount = 0;
+        // Function to check if all hashtags have been processed.
+        const checkCompletion = () => {
+            processedCount++;
+            if (processedCount === hashtags.length) {
+                // All hashtags processed; return the final response.
+                return res.json({
+                    success: true,
+                    message: 'Post created successfully!',
+                    postId: postId
+                });
+            }
+        };
+
+        // Process each hashtag
+        hashtags.forEach(tag => {
+            // Check if the hashtag already exists in the Hashtags table
+            db.query(`SELECT ID FROM Hashtags WHERE Tag = ?`, [tag], (err, tagResults) => {
+                if (err) {
+                    console.error('Error checking hashtag: ', err);
+                    // Even if one fails, continue processing others.
+                    return checkCompletion();
+                }
+
+                if (tagResults.length === 0) {
+                    // Hashtag does not exist; insert it.
+                    db.query(`INSERT INTO Hashtags (Tag) VALUES (?)`, [tag], (err, insertResult) => {
+                        if (err) {
+                            console.error('Error inserting hashtag: ', err);
+                            return checkCompletion();
+                        }
+                        const hashtagId = insertResult.insertId;
+                        // Create the association in PostHashtags
+                        db.query(`INSERT INTO PostHashtags (PostID, HashtagID) VALUES (?, ?)`, [postId, hashtagId], (err) => {
+                            if (err) {
+                                console.error('Error associating hashtag with post: ', err);
+                            }
+                            checkCompletion();
+                        });
+                    });
+                } else {
+                    // Hashtag exists; use its ID to create the association.
+                    const hashtagId = tagResults[0].ID;
+                    db.query(`INSERT INTO PostHashtags (PostID, HashtagID) VALUES (?, ?)`, [postId, hashtagId], (err) => {
+                        if (err) {
+                            console.error('Error associating hashtag with post: ', err);
+                        }
+                        checkCompletion();
+                    });
+                }
+            });
         });
     });
 };
@@ -599,3 +658,17 @@ exports.editComment = (req, res) => {
     });
 };
 
+// Hashtag related function:
+
+// Extracts hashtags from a string (e.g., "#hello world #test")
+const extractHashtags = (content) => {
+    // Matches words that start with '#'
+    const regex = /#(\w+)/g;
+    let hashtags = [];
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      // Optionally, normalize the hashtag (e.g., to lowercase)
+      hashtags.push(match[1].toLowerCase());
+    }
+    return hashtags;
+  };
