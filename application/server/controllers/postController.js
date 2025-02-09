@@ -124,7 +124,7 @@ exports.createPost = (req, res) => {
     });
 };
 
-// Get all user's post
+// Get all user's post 
 exports.getUserPosts = (req, res) => {
     const userId = req.userId;
 
@@ -549,7 +549,7 @@ exports.deleteComment = (req, res) => {
 
 // edit post
 exports.editPost = (req, res) => {
-    const userId = req.userId;  
+    const userId = req.userId;
     const { postId } = req.params;
     const { content } = req.body;
 
@@ -560,8 +560,8 @@ exports.editPost = (req, res) => {
         });
     }
 
+    // First, verify post ownership
     const checkQuery = `SELECT * FROM Posts WHERE ID = ? AND UserID = ?`;
-
     db.query(checkQuery, [postId, userId], (err, results) => {
         if (err) {
             console.error('Error verifying post ownership: ', err);
@@ -578,6 +578,7 @@ exports.editPost = (req, res) => {
             });
         }
 
+        // Update the post content
         const updateQuery = `UPDATE Posts SET Content = ? WHERE ID = ? AND UserID = ?`;
         db.query(updateQuery, [content, postId, userId], (err, updateResults) => {
             if (err) {
@@ -588,9 +589,73 @@ exports.editPost = (req, res) => {
                 });
             }
 
-            res.json({
-                success: true,
-                message: 'Post updated successfully.',
+            // Remove existing hashtag associations for the post
+            db.query(`DELETE FROM PostHashtags WHERE PostID = ?`, [postId], (err) => {
+                if (err) {
+                    console.error('Error deleting old hashtag associations: ', err);
+                    // Continue processing even if deletion fails
+                }
+
+                // Extract hashtags from the new content.
+                const hashtags = extractHashtags(content);
+
+                if (hashtags.length === 0) {
+                    // No hashtags to process, send response immediately.
+                    return res.json({
+                        success: true,
+                        message: 'Post updated successfully (no hashtags found).',
+                    });
+                }
+
+                let processedCount = 0;
+                const checkCompletion = () => {
+                    processedCount++;
+                    if (processedCount === hashtags.length) {
+                        // All hashtags processed; return the final response.
+                        return res.json({
+                            success: true,
+                            message: 'Post updated successfully with hashtags.',
+                        });
+                    }
+                };
+
+                // Process each hashtag
+                hashtags.forEach(tag => {
+                    // Check if the hashtag already exists in the Hashtags table
+                    db.query(`SELECT ID FROM Hashtags WHERE Tag = ?`, [tag], (err, tagResults) => {
+                        if (err) {
+                            console.error('Error checking hashtag: ', err);
+                            return checkCompletion();
+                        }
+
+                        if (tagResults.length === 0) {
+                            // Hashtag does not exist; insert it.
+                            db.query(`INSERT INTO Hashtags (Tag) VALUES (?)`, [tag], (err, insertResult) => {
+                                if (err) {
+                                    console.error('Error inserting hashtag: ', err);
+                                    return checkCompletion();
+                                }
+                                const hashtagId = insertResult.insertId;
+                                // Create the association in PostHashtags
+                                db.query(`INSERT INTO PostHashtags (PostID, HashtagID) VALUES (?, ?)`, [postId, hashtagId], (err) => {
+                                    if (err) {
+                                        console.error('Error associating hashtag with post: ', err);
+                                    }
+                                    checkCompletion();
+                                });
+                            });
+                        } else {
+                            // Hashtag exists; create the association.
+                            const hashtagId = tagResults[0].ID;
+                            db.query(`INSERT INTO PostHashtags (PostID, HashtagID) VALUES (?, ?)`, [postId, hashtagId], (err) => {
+                                if (err) {
+                                    console.error('Error associating hashtag with post: ', err);
+                                }
+                                checkCompletion();
+                            });
+                        }
+                    });
+                });
             });
         });
     });
