@@ -158,7 +158,6 @@ exports.getUserPosts = (req, res) => {
             return res.json({ success: false, message: 'Failed to retrieve posts.' });
         }
 
-        // Optionally, convert comma-separated hashtags into an array for each post
         const posts = results.map(post => {
             // If no hashtags exist, the field will be null
             if (post.hashtags) {
