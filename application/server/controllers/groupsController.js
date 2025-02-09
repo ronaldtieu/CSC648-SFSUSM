@@ -718,3 +718,71 @@ db.query(adminQuery, [groupId], (err, results) => {
     });
 });
 };
+
+// Check Join Request
+exports.checkJoinRequestStatus = (req, res) => {
+    const groupId = req.params.groupId;
+    let userId = req.userId; // Try to get userId from middleware
+  
+    // If userId is not provided by middleware, try to decode it from the token in the header.
+    if (!userId) {
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          // Assuming your payload includes the user's ID in "userId"
+          userId = decoded.userId;
+        } catch (err) {
+          console.error('JWT verification failed:', err);
+          return res.json({
+            success: false,
+            message: 'Invalid or expired token.'
+          });
+        }
+      }
+    }
+  
+    if (!groupId) {
+      return res.json({
+        success: false,
+        message: 'Group ID is required.'
+      });
+    }
+  
+    if (!userId) {
+      return res.json({
+        success: false,
+        message: 'User ID could not be determined.'
+      });
+    }
+  
+    const query = `
+      SELECT *
+      FROM GroupJoinRequests
+      WHERE GroupID = ? AND UserID = ? AND Status = 'pending'
+    `;
+  
+    db.query(query, [groupId, userId], (err, results) => {
+      if (err) {
+        console.error('Error checking join request status:', err);
+        return res.json({
+          success: false,
+          message: 'Failed to check join request status.'
+        });
+      }
+  
+      // If at least one pending request is found, return pending=true.
+      if (results.length > 0) {
+        return res.json({
+          success: true,
+          pending: true
+        });
+      } else {
+        return res.json({
+          success: true,
+          pending: false
+        });
+      }
+    });
+  };

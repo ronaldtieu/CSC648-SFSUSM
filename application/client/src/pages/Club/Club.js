@@ -16,7 +16,7 @@ const Club = ({ token }) => {
   const { id } = useParams();
   const location = useLocation();
   const history = useHistory();
-  
+
   // Use the passed token or fallback to localStorage
   const authToken = token || localStorage.getItem('token');
 
@@ -29,6 +29,7 @@ const Club = ({ token }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMember, setIsMember] = useState(false);
   const [joinRequests, setJoinRequests] = useState([]);
+  const [requestPending, setRequestPending] = useState(false);
 
   // Function to fetch club details (including posts and members)
   const fetchClub = async () => {
@@ -103,6 +104,7 @@ const Club = ({ token }) => {
       const res = await requestJoinClub(club.ID, authToken);
       if (res.success) {
         alert('Join request sent successfully.');
+        setRequestPending(true);
         fetchClub();
       } else {
         alert(res.message);
@@ -164,7 +166,11 @@ const Club = ({ token }) => {
         {/* Show join request button for non-members */}
         {(!isMember && !isAdmin) && (
           <div className="join-request-container">
-            <button onClick={handleRequestJoin}>Request to Join</button>
+            {requestPending ? (
+              <button disabled>Request Pending</button>
+            ) : (
+              <button onClick={handleRequestJoin}>Request to Join</button>
+            )}
           </div>
         )}
 

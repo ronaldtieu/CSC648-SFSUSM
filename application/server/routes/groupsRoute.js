@@ -42,4 +42,8 @@ router.get('/getGroupMembers', userController.verifyToken, groupController.getGr
 // Get Group By ID (with details, members, and posts)
 router.get('/getGroupById/:groupId', userController.verifyToken, groupController.getGroupById);
 
+// Checking if the current user has a pending join request
+router.get('/checkJoinRequestStatus/:groupId', userController.verifyToken, groupController.checkJoinRequestStatus);
+
+
 module.exports = router;
