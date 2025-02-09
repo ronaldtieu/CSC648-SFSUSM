@@ -133,11 +133,23 @@ exports.getUserPosts = (req, res) => {
     }
 
     const query = `
-        SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Posts.UserID, Posts.Visibility, Posts.GroupID, Users.FirstName, Users.LastName
-        FROM Posts
-        JOIN Users ON Posts.UserID = Users.ID
-        WHERE Posts.UserID = ?
-        ORDER BY Posts.CreatedAt DESC
+        SELECT 
+            p.ID, 
+            p.Content, 
+            p.CreatedAt, 
+            p.UserID, 
+            p.Visibility, 
+            p.GroupID, 
+            u.FirstName, 
+            u.LastName,
+            GROUP_CONCAT(h.Tag) AS hashtags
+        FROM Posts p
+        JOIN Users u ON p.UserID = u.ID
+        LEFT JOIN PostHashtags ph ON p.ID = ph.PostID
+        LEFT JOIN Hashtags h ON ph.HashtagID = h.ID
+        WHERE p.UserID = ?
+        GROUP BY p.ID
+        ORDER BY p.CreatedAt DESC
     `;
 
     db.query(query, [userId], (err, results) => {
@@ -145,7 +157,19 @@ exports.getUserPosts = (req, res) => {
             console.error('Error with user post query: ', err);
             return res.json({ success: false, message: 'Failed to retrieve posts.' });
         }
-        res.json({ success: true, posts: results });
+
+        // Optionally, convert comma-separated hashtags into an array for each post
+        const posts = results.map(post => {
+            // If no hashtags exist, the field will be null
+            if (post.hashtags) {
+                post.hashtags = post.hashtags.split(',');
+            } else {
+                post.hashtags = [];
+            }
+            return post;
+        });
+
+        res.json({ success: true, posts: posts });
     });
 };
 
