@@ -12,6 +12,7 @@ const friendRoutes = require('./routes/friendRoute');
 const messageRoute = require('./routes/messageRoute');
 const groupsRoute = require('./routes/groupsRoute');
 const feedRoute = require('./routes/feedRoute');
+const searchRoute = require('./routes/searchRoute');
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -31,7 +32,7 @@ app.use('/friends', friendRoutes);
 app.use('/messages', messageRoute);
 app.use('/groups', groupsRoute);
 app.use('/feed', feedRoute);
-
+app.use('/search', searchRoute);
 
 
 
