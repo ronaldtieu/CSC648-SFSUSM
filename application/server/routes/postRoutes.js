@@ -27,7 +27,7 @@ router.get('/:postId/likes', userController.verifyToken, postController.getPostL
 router.get('/:postId/comments', userController.verifyToken, postController.getPostComments);
 
 // get specific post
-router.get('/:postId', postController.getPostById);
+router.get('/:postId', userController.verifyToken, postController.getPostById);
 
 // delete specific post
 router.delete('/:postId', userController.verifyToken, postController.deletePost);

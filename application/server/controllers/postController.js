@@ -158,7 +158,8 @@ exports.getUserPosts = (req, res) => {
             return res.json({ success: false, message: 'Failed to retrieve posts.' });
         }
 
-        // Optionally, convert comma-separated hashtags into an array for each post
+        // Convert the GROUP_CONCAT result into an array.
+        // If no hashtags are found (i.e., the field is null), assign an empty array.
         const posts = results.map(post => {
             // If no hashtags exist, the field will be null
             if (post.hashtags) {
@@ -421,9 +422,15 @@ exports.getPostComments = (req, res) => {
 
 // getting specific post 
 exports.getPostById = (req, res) => {
+    // Ensure that the verifyToken middleware has confirmed a valid session.
+    if (!req.sessionStatus || !req.sessionStatus.success) {
+        return res.json({
+            success: false,
+            message: req.sessionStatus ? req.sessionStatus.message : 'Authentication required.'
+        });
+    }
+
     const { postId } = req.params;
-
-
     if (!postId) {
         return res.json({
             success: false,
@@ -432,10 +439,19 @@ exports.getPostById = (req, res) => {
     }
 
     const query = `
-        SELECT Posts.ID, Posts.Content, Posts.CreatedAt, Users.FirstName, Users.LastName
-        FROM Posts
-        JOIN Users ON Posts.UserID = Users.ID
-        WHERE Posts.ID = ?
+        SELECT 
+            p.ID, 
+            p.Content, 
+            p.CreatedAt, 
+            u.FirstName, 
+            u.LastName,
+            GROUP_CONCAT(h.Tag) AS hashtags
+        FROM Posts p
+        JOIN Users u ON p.UserID = u.ID
+        LEFT JOIN PostHashtags ph ON p.ID = ph.PostID
+        LEFT JOIN Hashtags h ON ph.HashtagID = h.ID
+        WHERE p.ID = ?
+        GROUP BY p.ID
     `;
 
     db.query(query, [postId], (err, results) => {
@@ -454,13 +470,17 @@ exports.getPostById = (req, res) => {
             });
         }
 
+        // Convert the GROUP_CONCAT result into an array.
+        // If no hashtags are found (i.e., the field is null), assign an empty array.
+        const post = results[0];
+        post.hashtags = post.hashtags ? post.hashtags.split(',') : [];
+
         res.json({
             success: true,
-            post: results[0], 
+            post: post,
         });
     });
 };
-
 
 // add delete post 
 exports.deletePost = (req, res) => {
