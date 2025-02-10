@@ -422,7 +422,6 @@ exports.getPostComments = (req, res) => {
 
 // getting specific post 
 exports.getPostById = (req, res) => {
-    // Ensure that the verifyToken middleware has confirmed a valid session.
     if (!req.sessionStatus || !req.sessionStatus.success) {
         return res.json({
             success: false,

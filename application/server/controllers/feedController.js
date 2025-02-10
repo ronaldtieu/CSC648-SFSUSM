@@ -13,7 +13,7 @@ exports.getUserFeed = (req, res) => {
     }
 
     const getUserFeedQuery = `
-        SELECT DISTINCT 
+        SELECT 
             p.ID AS postId, 
             p.Content AS content, 
             p.CreatedAt AS createdAt, 
@@ -27,12 +27,15 @@ exports.getUserFeed = (req, res) => {
                 WHEN p.GroupID IS NOT NULL THEN 'group'
                 WHEN f.ID IS NOT NULL THEN 'friend'
                 ELSE 'public'
-            END AS source
+            END AS source,
+            GROUP_CONCAT(h.Tag) AS hashtags
         FROM Posts p
         JOIN Users u ON p.UserID = u.ID
         LEFT JOIN Friends f 
             ON (f.UserID1 = ? AND f.UserID2 = p.UserID)
             OR (f.UserID2 = ? AND f.UserID1 = p.UserID)
+        LEFT JOIN PostHashtags ph ON p.ID = ph.PostID
+        LEFT JOIN Hashtags h ON ph.HashtagID = h.ID
         WHERE 
             p.UserID = ?
             OR (p.GroupID IS NOT NULL AND p.GroupID IN (
@@ -43,6 +46,7 @@ exports.getUserFeed = (req, res) => {
                 AND p.GroupID IS NULL 
                 AND f.ID IS NULL 
                 AND p.UserID <> ?)
+        GROUP BY p.ID
         ORDER BY p.CreatedAt DESC
         LIMIT 50;
     `;
@@ -56,9 +60,16 @@ exports.getUserFeed = (req, res) => {
             });
         }
 
+        // Convert the GROUP_CONCAT result into an array.
+        // If no hashtags are found (i.e., the field is null), assign an empty array.
+        const feed = results.map(post => {
+            post.hashtags = post.hashtags ? post.hashtags.split(',') : [];
+            return post;
+        });
+
         res.json({
             success: true,
-            feed: results, 
+            feed: feed, 
         });
     });
 };
