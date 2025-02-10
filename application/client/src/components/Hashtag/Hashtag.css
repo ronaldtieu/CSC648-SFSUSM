@@ -1,0 +1,14 @@
+.hashtag {
+    color: purple;
+    cursor: pointer;
+    margin-right: 5px;
+    font-weight: bold;
+}
+
+.hashtag:hover {
+    text-decoration: underline;
+}
+
+.hashtag-list {
+    margin-top: 5px;
+}
