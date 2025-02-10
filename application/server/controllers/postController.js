@@ -770,13 +770,67 @@ exports.editComment = (req, res) => {
 
 // Extracts hashtags from a string (e.g., "#hello world #test")
 const extractHashtags = (content) => {
-    // Matches words that start with '#'
-    const regex = /#(\w+)/g;
-    let hashtags = [];
-    let match;
-    while ((match = regex.exec(content)) !== null) {
-      // Optionally, normalize the hashtag (e.g., to lowercase)
-      hashtags.push(match[1].toLowerCase());
-    }
-    return hashtags;
-  };
+// Matches words that start with '#'
+const regex = /#(\w+)/g;
+let hashtags = [];
+let match;
+while ((match = regex.exec(content)) !== null) {
+// Optionally, normalize the hashtag (e.g., to lowercase)
+hashtags.push(match[1].toLowerCase());
+}
+return hashtags;
+};
+
+// In your posts controller (e.g., postController.js)
+exports.getPostsByHashtag = (req, res) => {
+const { hashtag } = req.params;
+
+if (!hashtag) {
+return res.json({
+success: false,
+message: 'Hashtag parameter is missing.',
+});
+}
+
+// SQL query: Fetch public posts that include the given hashtag.
+const query = `
+SELECT 
+p.ID, 
+p.Content, 
+p.CreatedAt, 
+p.UserID, 
+p.Visibility, 
+p.GroupID, 
+u.FirstName, 
+u.LastName,
+GROUP_CONCAT(h.Tag) AS hashtags
+FROM Posts p
+JOIN Users u ON p.UserID = u.ID
+JOIN PostHashtags ph ON p.ID = ph.PostID
+JOIN Hashtags h ON ph.HashtagID = h.ID
+WHERE h.Tag = ? AND p.Visibility = 'public'
+GROUP BY p.ID
+ORDER BY p.CreatedAt DESC
+`;
+
+db.query(query, [hashtag.toLowerCase()], (err, results) => {
+if (err) {
+console.error('Error fetching posts by hashtag: ', err);
+return res.json({
+    success: false,
+    message: 'Failed to retrieve posts for this hashtag.',
+});
+}
+
+// Convert GROUP_CONCAT into an array for each post.
+const posts = results.map(post => {
+post.hashtags = post.hashtags ? post.hashtags.split(',') : [];
+return post;
+});
+
+res.json({
+success: true,
+posts: posts,
+});
+});
+};

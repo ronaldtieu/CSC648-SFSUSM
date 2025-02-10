@@ -41,5 +41,9 @@ router.put('/:postId/editPost', userController.verifyToken, postController.editP
 // edit comment
 router.put('/:postId/comments/:commentId/editComment', userController.verifyToken, postController.editComment);
 
+// Fetching posts by hashtag
+router.get('/:hashtag/posts', postController.getPostsByHashtag);
+
+
 
 module.exports = router;
