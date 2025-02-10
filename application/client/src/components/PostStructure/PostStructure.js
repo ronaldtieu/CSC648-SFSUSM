@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useHistory } from 'react-router-dom'; // Import useHistory from react-router-dom
 import { likePost, unlikePost, getPostLikes, editPost, deletePost, deleteComment } from '../../service/postService';
 import { FaThumbsUp, FaComment, FaEllipsisH } from 'react-icons/fa';
 import CommentSection from '../CommentSection/CommentSection';
@@ -106,6 +107,7 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
 
   const isUserPost = Number(post?.UserID) === Number(userId);
   const postData = usePostData(post?.ID, userId);
+  const history = useHistory(); // Get history object for navigation
 
   const handleLikeToggle = async () => {
     try {
@@ -137,9 +139,9 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
     }
   };
 
+  // When a hashtag is clicked, redirect to the HashtagPage.
   const handleHashtagClick = (tag) => {
-    console.log('Clicked hashtag:', tag);
-    // Implement your navigation or filtering logic here.
+    history.push(`/hashtag/${tag}/posts`);
   };
 
   if (showDeleteConfirm) {

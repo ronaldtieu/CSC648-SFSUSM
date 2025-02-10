@@ -349,3 +349,29 @@ export const editComment = async (postId, commentId, content) => {
         throw error;
     }
 };
+
+// fetch posts based on hashtag
+export const fetchPostsByHashtag = async (hashtag) => {
+  try {
+    // Use encodeURIComponent to safely encode the hashtag in the URL
+    const response = await fetch(`${API_BASE_URL}/${encodeURIComponent(hashtag)}/posts`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch posts by hashtag. Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error('Failed to fetch posts by hashtag.');
+    }
+
+    return data.posts;
+  } catch (error) {
+    console.error('Error fetching posts by hashtag:', error.message);
+    throw error;
+  }
+};
