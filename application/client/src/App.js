@@ -19,7 +19,8 @@ import CreateClub from './pages/CreateClub/CreateClub';
 import ViewClubs from './pages/ViewClubs/ViewClubs';
 import Club from './pages/Club/Club'; 
 import EditClub from './pages/Club/EditClub';
-import HashtagPage from './pages/HashtagPage/HashtagPage'
+import HashtagPage from './pages/HashtagPage/HashtagPage';
+import Search from './pages/Search/Search';  // Import the Search page
 
 import './App.css';
 
@@ -48,7 +49,7 @@ const App = () => {
   }, []);
 
   if (loading) {
-    return <p>Loading...</p>; 
+    return <p>Loading...</p>;
   }
 
   return (
@@ -58,7 +59,6 @@ const App = () => {
         <Route path="/" exact>
           {isLoggedIn ? <Redirect to="/home" /> : <LandingPage />}
         </Route>
-
         <ProtectedRoute path="/home" component={Home} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/profile" component={Profile} isLoggedIn={isLoggedIn} /> 
         <ProtectedRoute path="/view-profile" component={ViewProfile} isLoggedIn={isLoggedIn} />
@@ -74,7 +74,7 @@ const App = () => {
         <ProtectedRoute path="/club/:id" component={Club} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/editClub/:id" component={EditClub} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/hashtag/:hashtag/posts" component={HashtagPage} isLoggedIn={isLoggedIn} />
-
+        <ProtectedRoute path="/search" component={Search} isLoggedIn={isLoggedIn} />
         <Redirect to={isLoggedIn ? "/home" : "/"} />
       </Switch>
       {isLoggedIn && <Footer />}
