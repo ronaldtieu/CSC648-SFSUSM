@@ -5,7 +5,8 @@ import './Header.css';
 import profilePic from '../../assets/gator_default_pic.png';
 import Messages from '../Messages/Messages'; 
 import Notification from '../Notification/Notification'; 
-import { logoutUser } from '../../service/profileService'; // Import the logout function
+import { logoutUser } from '../../service/profileService'; 
+
 
 const Header = ({ notifications, messages }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -175,7 +176,6 @@ const Header = ({ notifications, messages }) => {
       </div>
 
       <div className={`main-content ${sidebarOpen ? 'shift' : ''}`}>
-        {/* Main content goes here */}
       </div>
     </div>
   );
