@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { fetchSearchResults } from '../../service/searchService';
 import PostStructure from '../../components/PostStructure/PostStructure';
+import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 
 const Search = () => {
   const location = useLocation();
@@ -29,7 +30,12 @@ const Search = () => {
     }
   }, [query]);
 
-  if (loading) return <div className="loading-screen">Loading...</div>;
+  if (loading)
+    return (
+      <div className="loading-container">
+        <LoadingScreen />
+      </div>
+    );
   if (error) return <div className="error-screen">Error: {error}</div>;
   if (!results || (!results.users.length && !results.posts.length))
     return <div className="no-results-screen">No results found</div>;
