@@ -51,8 +51,11 @@ router.get('/majors', userController.getMajor);
 // Get school minors
 router.get('/minors', userController.getMinor);
 
+// Get all users
 router.get('/allUsers', userController.getAllUsers);
 
+// Get a full profile data for a specific user id
+router.get('/profile/:id', userController.getUserById);
 
 
 module.exports = router;

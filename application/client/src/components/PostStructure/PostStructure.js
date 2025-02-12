@@ -3,6 +3,7 @@ import { useHistory } from 'react-router-dom'; // Import useHistory from react-r
 import { likePost, unlikePost, getPostLikes, editPost, deletePost, deleteComment } from '../../service/postService';
 import { FaThumbsUp, FaComment, FaEllipsisH } from 'react-icons/fa';
 import CommentSection from '../CommentSection/CommentSection';
+import ProfileBanner from '../../components/ProfileBanner/ProfileBanner';
 import './PostStructure.css';
 
 const renderContentWithHashtags = (text, handleHashtagClick) => {
@@ -104,6 +105,7 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
   const [editMode, setEditMode] = useState(false);
   const [editedContent, setEditedContent] = useState(post?.Content || '');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showProfileBanner, setShowProfileBanner] = useState(false);
 
   const isUserPost = Number(post?.UserID) === Number(userId);
   const postData = usePostData(post?.ID, userId);
@@ -144,6 +146,11 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
     history.push(`/hashtag/${tag}/posts`);
   };
 
+  // When the user's name is clicked, open the profile banner.
+  const handleUserClick = () => {
+    setShowProfileBanner(true);
+  };
+
   if (showDeleteConfirm) {
     return (
       <div className="post-item">
@@ -166,7 +173,8 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
     <div className="post-item">
       <div className="post-header">
         <div className="post-author">
-          <p>
+          {/* Wrap the name in a clickable element */}
+          <p onClick={handleUserClick} style={{ cursor: 'pointer' }}>
             {post?.FirstName} {post?.LastName}
           </p>
           <span>{post?.CreatedAt && new Date(post.CreatedAt).toLocaleString()}</span>
@@ -216,6 +224,15 @@ const PostStructure = ({ post, userId, onDeletePost }) => {
           userId={userId}
           comments={postData.comments}
           loadPostData={postData.loadPostData}
+        />
+      )}
+      
+      {/* Render the ProfileBanner if showProfileBanner is true */}
+      {showProfileBanner && (
+        <ProfileBanner 
+          user={null}  
+          userId={post.UserID} 
+          onClose={() => setShowProfileBanner(false)} 
         />
       )}
     </div>

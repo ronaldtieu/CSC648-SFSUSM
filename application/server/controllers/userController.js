@@ -318,7 +318,7 @@ exports.clearBlacklist = async (req, res, next) => {
         console.log('TokenBlacklist table cleared');
         return res.json({ success: true, message: 'TokenBlacklist table cleared successfully' });
     });
-};
+};``
 
 
 // Function to get all blacklisted tokens
@@ -419,6 +419,7 @@ exports.getMinor = (req, res) => {
     });
 };
 
+// Get all Users
 exports.getAllUsers = (req, res) => {
     const query = `
         SELECT ID, FirstName, LastName, Email 
@@ -439,5 +440,42 @@ exports.getAllUsers = (req, res) => {
             success: true,
             users: results,  // Array of user objects
         });
+    });
+};
+
+// Get all user ID which would be used for the profile banner
+exports.getUserById = (req, res) => {
+    const userId = req.params.id;
+    const query = `
+      SELECT 
+        ID, 
+        FirstName, 
+        LastName, 
+        Email, 
+        Major, 
+        Minor, 
+        Pronouns,
+        Description
+      FROM Users
+      WHERE ID = ?
+    `;
+    db.query(query, [userId], (err, results) => {
+      if (err) {
+        console.error('Error retrieving user by ID:', err);
+        return res.json({
+          success: false,
+          message: 'Failed to retrieve user information.',
+        });
+      }
+      if (results.length === 0) {
+        return res.json({
+          success: false,
+          message: 'No user found with the provided ID.',
+        });
+      }
+      res.json({
+        success: true,
+        user: results[0],
+      });
     });
 };
