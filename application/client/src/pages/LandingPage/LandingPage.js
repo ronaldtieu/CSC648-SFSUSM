@@ -39,6 +39,12 @@ const LandingPage = () => {
     }
   };
 
+  // Redirect to the signup page
+  const redirectToSignUp = (e) => {
+    e.preventDefault();
+    history.push('/signup');
+  };
+
   return (
     <div className="landing-page">
       <div className="login-container">
@@ -65,7 +71,12 @@ const LandingPage = () => {
         </div>
         <a href="#" className="forgot-password">Forgot Password?</a>
         <div className="signup-section">
-          <p>Don't have an account? <a href="#">Sign Up</a></p>
+          <p>
+            Don't have an account?{' '}
+            <a href="#" onClick={redirectToSignUp}>
+              Sign Up
+            </a>
+          </p>
         </div>
       </div>
     </div>
