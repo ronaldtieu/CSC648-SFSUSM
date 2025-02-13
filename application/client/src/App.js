@@ -22,6 +22,8 @@ import Club from './pages/Club/Club';
 import EditClub from './pages/Club/EditClub';
 import HashtagPage from './pages/HashtagPage/HashtagPage';
 import Search from './pages/Search/Search'; 
+import Message from './pages/Message/Message'; 
+
 
 import './App.css';
 
@@ -80,6 +82,7 @@ const App = () => {
         <ProtectedRoute path="/editClub/:id" component={EditClub} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/hashtag/:hashtag/posts" component={HashtagPage} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/search" component={Search} isLoggedIn={isLoggedIn} />
+        <ProtectedRoute path="/messages/:conversationId" component={Message} isLoggedIn={isLoggedIn} />
         <Redirect to={isLoggedIn ? "/home" : "/"} />
       </Switch>
       {isLoggedIn && <Footer />}

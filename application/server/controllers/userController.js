@@ -266,7 +266,7 @@ exports.getUserInfo = (req, res) => {
         });
       });
     });
-  };
+};
 
 // Edit user profile
 exports.editUserProfile = async (req, res, next) => {
@@ -479,3 +479,39 @@ exports.getUserById = (req, res) => {
       });
     });
 };
+
+exports.searchUsers = (req, res) => {
+    const searchQuery = req.query.q;
+    
+    if (!searchQuery) {
+      return res.json({
+        success: false,
+        message: 'No search query provided.'
+      });
+    }
+    
+    const sql = `
+      SELECT ID, FirstName, LastName, Email 
+      FROM Users 
+      WHERE CONCAT(FirstName, ' ', LastName) LIKE ? OR Email LIKE ?
+      ORDER BY FirstName ASC
+      LIMIT 10
+    `;
+    
+    const likeQuery = `%${searchQuery}%`;
+    
+    db.query(sql, [likeQuery, likeQuery], (err, results) => {
+      if (err) {
+        console.error('Error searching users:', err);
+        return res.json({
+          success: false,
+          message: 'An error occurred while searching for users.'
+        });
+      }
+      
+      res.json({
+        success: true,
+        users: results
+      });
+    });
+  };
