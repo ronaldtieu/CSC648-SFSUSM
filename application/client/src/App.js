@@ -12,6 +12,7 @@ import TutoringMentorshipPage from './pages/TutoringMentorship/TutoringMentorshi
 import Marketplace from './pages/Marketplace/Marketplace';
 import DiscountsDeals from './pages/DiscountDeals/DiscountDeals';
 import LandingPage from './pages/LandingPage/LandingPage';
+import SignUp from './pages/SignUp/SignUp'; 
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import { checkSession } from './service/profileService'; 
 import ViewProfile from './pages/Profile/ViewProfile';
@@ -20,7 +21,7 @@ import ViewClubs from './pages/ViewClubs/ViewClubs';
 import Club from './pages/Club/Club'; 
 import EditClub from './pages/Club/EditClub';
 import HashtagPage from './pages/HashtagPage/HashtagPage';
-import Search from './pages/Search/Search';  // Import the Search page
+import Search from './pages/Search/Search'; 
 
 import './App.css';
 
@@ -58,6 +59,10 @@ const App = () => {
       <Switch>
         <Route path="/" exact>
           {isLoggedIn ? <Redirect to="/home" /> : <LandingPage />}
+        </Route>
+        {/* Public route for signup */}
+        <Route path="/signup" exact>
+          <SignUp />
         </Route>
         <ProtectedRoute path="/home" component={Home} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/profile" component={Profile} isLoggedIn={isLoggedIn} /> 

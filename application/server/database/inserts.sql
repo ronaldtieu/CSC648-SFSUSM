@@ -3,6 +3,7 @@ USE `project-db`;
 
 
 -- All SFSU Major inserts
+INSERT INTO Minors (MinorName) VALUES ('Undeclared');
 INSERT INTO Majors (MajorName) VALUES ('African-American Studies');
 INSERT INTO Majors (MajorName) VALUES ('Allied Health');
 INSERT INTO Majors (MajorName) VALUES ('American Indian Studies');
@@ -230,5 +231,6 @@ INSERT INTO Minors (MinorName) VALUES ('Urban Studies and Planning');
 INSERT INTO Minors (MinorName) VALUES ('Video Game Studies');
 INSERT INTO Minors (MinorName) VALUES ('Women and Gender Studies');
 INSERT INTO Minors (MinorName) VALUES ('World Development Studies');
+
 
 

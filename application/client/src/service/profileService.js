@@ -170,3 +170,27 @@ export const fetchMinors = async () => {
     }
 }
 
+export const registerUser = async (registrationData) => {
+    try {
+      console.log('Attempting to register a new user...');
+      const response = await fetch(`${API_BASE_URL}/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(registrationData),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Registration failed with status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log('Registration response:', data);
+      return data;
+    } catch (error) {
+      console.error('Error registering user:', error.message);
+      throw error;
+    }
+};
