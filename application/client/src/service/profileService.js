@@ -170,6 +170,37 @@ export const fetchMinors = async () => {
     }
 }
 
+ 
+export const fetchUserById = async (id) => {
+    if (!id) {
+      throw new Error('User ID is required.');
+    }
+  
+    const response = await fetch(`${API_BASE_URL}/profile/${id}`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+  
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user profile. Received HTTP status: ${response.status}.`);
+    }
+  
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      throw new Error('The response format was not JSON as expected.');
+    }
+  
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'User profile request was not successful.');
+    }
+  
+    // Return the full user object as it was received
+    // console.log('Returning full user object:', data.user);
+    return data.user;
+  };
+
 export const registerUser = async (registrationData) => {
     try {
       console.log('Attempting to register a new user...');
