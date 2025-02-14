@@ -68,6 +68,8 @@ const App = () => {
         </Route>
         <ProtectedRoute path="/home" component={Home} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/profile" component={Profile} isLoggedIn={isLoggedIn} /> 
+        <ProtectedRoute path="/messages/new" component={Message} isLoggedIn={isLoggedIn} />
+        <ProtectedRoute path="/messages/:conversationId" component={Message} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/view-profile" component={ViewProfile} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/edit-profile" component={EditProfile} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/messages" component={MessagesPage} isLoggedIn={isLoggedIn} />
@@ -82,7 +84,6 @@ const App = () => {
         <ProtectedRoute path="/editClub/:id" component={EditClub} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/hashtag/:hashtag/posts" component={HashtagPage} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/search" component={Search} isLoggedIn={isLoggedIn} />
-        <ProtectedRoute path="/messages/:conversationId" component={Message} isLoggedIn={isLoggedIn} />
         <Redirect to={isLoggedIn ? "/home" : "/"} />
       </Switch>
       {isLoggedIn && <Footer />}

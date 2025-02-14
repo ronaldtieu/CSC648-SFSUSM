@@ -128,10 +128,13 @@ exports.sendMessage = (req, res) => {
     });
 };
 
-// Retrieve messages from a specific conversation
 exports.getMessages = (req, res) => {
-    const userId = req.userId;
+    const userId = req.userId; 
     const { conversationId } = req.params;
+
+    console.log("getMessages endpoint called with:");
+    console.log("req.userId:", userId);
+    console.log("Conversation ID:", conversationId);
 
     const checkParticipantQuery = `
         SELECT COUNT(*) AS isParticipant
@@ -148,7 +151,9 @@ exports.getMessages = (req, res) => {
             });
         }
 
+        console.log("Query result for participant check:", participantResult);
         if (participantResult[0].isParticipant === 0) {
+            console.error(`Access denied for user ${userId} on conversation ${conversationId}`);
             return res.json({
                 success: false,
                 message: 'Access denied. You are not a participant in this conversation.',
@@ -439,36 +444,96 @@ exports.getAllConversations = (req, res) => {
     });
 };
 
-// get ALL members from convo
+// get ALL members from convo and check if current is a participant
 exports.getConversationMembers = (req, res) => {
     const { conversationId } = req.params;
-
-    if (!conversationId) {
-        return res.json({
-            success: false,
-            message: 'Conversation ID is required.',
-        });
+    const currentUserId = req.userId;
+  
+    if (!conversationId || !currentUserId) {
+      return res.json({
+        success: false,
+        message: 'Conversation ID and User ID are required.',
+      });
     }
-
+  
     const query = `
-        SELECT Users.ID AS userId, Users.FirstName, Users.LastName
-        FROM ConversationParticipants
-        JOIN Users ON ConversationParticipants.UserID = Users.ID
-        WHERE ConversationParticipants.ConversationID = ?
+      SELECT Users.ID AS userId, Users.FirstName, Users.LastName
+      FROM ConversationParticipants
+      JOIN Users ON ConversationParticipants.UserID = Users.ID
+      WHERE ConversationParticipants.ConversationID = ?
     `;
-
+  
     db.query(query, [conversationId], (err, results) => {
-        if (err) {
-            console.error('Error retrieving conversation members:', err);
-            return res.json({
-                success: false,
-                message: 'Failed to retrieve conversation members.',
-            });
-        }
-
-        res.json({
-            success: true,
-            members: results,
+      if (err) {
+        console.error('Error retrieving conversation members:', err);
+        return res.json({
+          success: false,
+          message: 'Failed to retrieve conversation members.',
         });
+      }
+  
+      const isParticipant = results.some(member => member.userId === currentUserId);
+  
+      if (!isParticipant) {
+        return res.json({
+          success: false,
+          message: 'Access denied. You are not a participant in this conversation.',
+        });
+      }
+  
+      return res.json({
+        success: true,
+        members: results,
+        currentUserId,
+        isParticipant, // This will be true at this point
+      });
+    });
+};
+
+exports.checkExistingConversation = (req, res) => {
+    const senderId = req.userId;
+    const { receiverIds } = req.body;
+    if (!receiverIds || !Array.isArray(receiverIds) || receiverIds.length === 0) {
+      return res.json({
+        success: false,
+        message: 'At least one receiver ID is required to check conversation.'
+      });
+    }
+    const participants = [senderId, ...receiverIds];
+    
+    const existingConversationQuery = `
+      SELECT cp.ConversationID
+      FROM ConversationParticipants cp
+      JOIN (
+        SELECT ConversationID
+        FROM ConversationParticipants
+        WHERE UserID IN (?)
+        GROUP BY ConversationID
+        HAVING COUNT(UserID) = ?
+      ) AS groupedConversations
+      ON cp.ConversationID = groupedConversations.ConversationID
+      GROUP BY cp.ConversationID
+      HAVING COUNT(cp.UserID) = ?;
+    `;
+    
+    db.query(existingConversationQuery, [participants, participants.length, participants.length], (err, results) => {
+      if (err) {
+        console.error('Error checking for existing conversation:', err);
+        return res.json({
+          success: false,
+          message: 'Error checking for existing conversation.'
+        });
+      }
+      if (results.length > 0) {
+        return res.json({
+          success: true,
+          conversationId: results[0].ConversationID
+        });
+      } else {
+        return res.json({
+          success: false,
+          message: 'No conversation found.'
+        });
+      }
     });
 };

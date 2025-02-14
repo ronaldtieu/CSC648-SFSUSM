@@ -198,7 +198,7 @@ export const fetchUserById = async (id) => {
     // Return the full user object as it was received
     // console.log('Returning full user object:', data.user);
     return data.user;
-  };
+};
 
 export const registerUser = async (registrationData) => {
     try {
@@ -223,4 +223,15 @@ export const registerUser = async (registrationData) => {
       console.error('Error registering user:', error.message);
       throw error;
     }
+};
+
+export const searchUsers = async (query, token) => {
+    const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include'
+    });
+    return response.json();
 };

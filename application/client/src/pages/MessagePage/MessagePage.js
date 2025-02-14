@@ -61,15 +61,27 @@ const MessagesPage = ({ token, initialConversations, userId: initialUserId }) =>
   }, [tokenToUse, userId, conversations.length]);
 
   // Handler for clicking an existing conversation.
-  const handleConversationClick = (conversationId) => {
-    // Navigate to Message.js with the conversationId.
-    history.push(`/messages/${conversationId}`);
+  const handleConversationClick = (conversation) => {
+    // Log the conversation's participants.
+    console.log("Conversation Participants:", conversation.participants);
+    // Log the current user ID.
+    console.log("Current User ID:", userId);
+
+    // Check if the current user is among the conversation participants.
+    const isParticipant = conversation.participants.some(
+      (p) => p.participantId === userId
+    );
+    console.log("Is current user a participant?", isParticipant);
+
+    if (isParticipant) {
+      history.push(`/messages/${conversation.conversationId}`);
+    } else {
+      console.error("Access denied. The current user is not a participant in this conversation.");
+    }
   };
 
   // Handler for starting a new conversation.
   const handleStartNewConversation = () => {
-    // For a new conversation, we redirect to a route (e.g., '/messages/new')
-    // where Message.js can render a blank conversation shell.
     history.push('/messages/new');
   };
 
@@ -97,8 +109,8 @@ const MessagesPage = ({ token, initialConversations, userId: initialUserId }) =>
                 <li 
                   key={conversation.conversationId} 
                   className="message-item"
-                  onClick={() => handleConversationClick(conversation.conversationId)}
                   style={{ cursor: 'pointer' }}
+                  onClick={() => handleConversationClick(conversation)}
                 >
                   <div>
                     <strong>Conversation ID:</strong> {conversation.conversationId}

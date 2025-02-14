@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:4000/messages'; // Adjust the base URL as necessary
+const BASE_URL = 'http://localhost:4000/messages'; 
 
 // Create a new conversation
 export const createConversation = async (receiverIds, token) => {
@@ -16,26 +16,28 @@ export const createConversation = async (receiverIds, token) => {
 // Send a message within a conversation
 export const sendMessage = async (conversationId, messageContent, token) => {
     const response = await fetch(`${BASE_URL}/sendMessage`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ conversationId, messageContent })
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include',  
+      body: JSON.stringify({ conversationId, messageContent })
     });
     return response.json();
-};
+  };
 
 // Get messages from a specific conversation
 export const getMessages = async (conversationId, token) => {
     const response = await fetch(`${BASE_URL}/${conversationId}/messages`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include' 
     });
     return response.json();
-};
+  };
 
 // Delete a conversation
 export const deleteConversation = async (conversationId, token) => {
@@ -88,13 +90,26 @@ export const getAllConversations = async (token) => {
 
 // Get all members from a conversation
 export const getConversationMembers = async (conversationId, token) => {
-    const response = await fetch(`${BASE_URL}/allMembersFromConversation`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ conversationId })
+    const response = await fetch(`${BASE_URL}/allMembersFromConversation/${conversationId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include'
+    });
+    return response.json();
+  };
+
+export const checkExistingConversation = async (receiverIds, token) => {
+    const response = await fetch(`${BASE_URL}/checkExistingConversation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include',
+      body: JSON.stringify({ receiverIds })
     });
     return response.json();
 };
-
