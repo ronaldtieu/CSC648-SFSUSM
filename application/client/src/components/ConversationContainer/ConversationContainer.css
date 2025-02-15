@@ -1,4 +1,4 @@
-/* Conversation container (box) */
+/* Conversation container styling for messages */
 .conversation-container {
     border: 1px solid #ccc;
     border-radius: 10px;
@@ -8,15 +8,7 @@
     overflow-y: auto;
   }
   
-  /* Header inside the conversation box to show participants */
-  .conversation-header {
-    font-weight: bold;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 5px;
-  }
-  
-  /* Container for the conversation messages */
+  /* Container for conversation messages */
   .conversation-messages ul {
     list-style: none;
     padding: 0;
@@ -70,20 +62,4 @@
     content: "";
     display: block;
     clear: both;
-  }
-  
-  /* Participant suggestions (if used only in conversation container) */
-  .participant-suggestions {
-    list-style: none;
-    padding: 0;
-    margin: 5px 0 0 0;
-  }
-  
-  .participant-suggestions li {
-    padding: 5px;
-    cursor: pointer;
-  }
-  
-  .participant-suggestions li:hover {
-    background-color: #eaeaea;
   }
