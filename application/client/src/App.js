@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
+import io from 'socket.io-client';
 import Header from './components/Header/Header';
 import Footer from './components/Footer/Footer';
 import Home from './pages/Home/Home';
@@ -23,7 +24,6 @@ import EditClub from './pages/Club/EditClub';
 import HashtagPage from './pages/HashtagPage/HashtagPage';
 import Search from './pages/Search/Search'; 
 import Message from './pages/Message/Message'; 
-
 
 import './App.css';
 
@@ -51,6 +51,21 @@ const App = () => {
     checkUserSession();
   }, []);
 
+  useEffect(() => {
+    if (isLoggedIn) {
+      const socket = io('http://localhost:4000', { withCredentials: true });
+      socket.on('connect', () => {
+        console.log('Socket connected:', socket.id);
+      });
+      socket.on('receiveMessage', (message) => {
+        console.log('Socket received message:', message);
+      });
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [isLoggedIn]);
+
   if (loading) {
     return <p>Loading...</p>;
   }
@@ -62,7 +77,6 @@ const App = () => {
         <Route path="/" exact>
           {isLoggedIn ? <Redirect to="/home" /> : <LandingPage />}
         </Route>
-        {/* Public route for signup */}
         <Route path="/signup" exact>
           <SignUp />
         </Route>

@@ -229,9 +229,10 @@ export const searchUsers = async (query, token) => {
     const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`, {
       method: 'GET',
       headers: {
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
       credentials: 'include'
     });
     return response.json();
-};
+  };

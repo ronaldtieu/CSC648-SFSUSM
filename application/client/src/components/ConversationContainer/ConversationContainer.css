@@ -1,0 +1,89 @@
+/* Conversation container (box) */
+.conversation-container {
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    max-height: 500px; 
+    overflow-y: auto;
+  }
+  
+  /* Header inside the conversation box to show participants */
+  .conversation-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+  }
+  
+  /* Container for the conversation messages */
+  .conversation-messages ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  /* Base styling for a message item */
+  .message-item {
+    margin-bottom: 10px;
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 10px;
+    clear: both;
+    word-wrap: break-word;
+  }
+  
+  /* Styling for messages sent by the current user */
+  .own-message {
+    background-color: #daf1da;
+    float: right;
+    text-align: right;
+  }
+  
+  /* Styling for messages sent by others */
+  .other-message {
+    background-color: #f1f0f0;
+    float: left;
+    text-align: left;
+  }
+  
+  /* Optional: styling for sender's name on messages from others */
+  .sender-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  /* Styling for message content and timestamp */
+  .message-content {
+    margin: 0;
+  }
+  
+  .message-timestamp {
+    display: block;
+    font-size: 0.75em;
+    color: #555;
+    margin-top: 5px;
+  }
+  
+  /* Clear floats after the message list */
+  .conversation-messages ul::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+  
+  /* Participant suggestions (if used only in conversation container) */
+  .participant-suggestions {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+  }
+  
+  .participant-suggestions li {
+    padding: 5px;
+    cursor: pointer;
+  }
+  
+  .participant-suggestions li:hover {
+    background-color: #eaeaea;
+  }
