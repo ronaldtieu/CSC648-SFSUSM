@@ -4,7 +4,7 @@
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 20px;
-    max-height: 500px; 
+    max-height: 900px; 
     overflow-y: auto;
   }
   
@@ -62,4 +62,14 @@
     content: "";
     display: block;
     clear: both;
+  }
+
+  .message-input {
+    position: sticky;
+    bottom: 0;
+    background-color: #fff; /* Ensures the input stands out */
+    padding: 0px;
+    z-index: 10; /* Make sure it appears above the scrolling messages */
+    border-top: 1px solid #ccc;
+    bottom: -21px;
   }
