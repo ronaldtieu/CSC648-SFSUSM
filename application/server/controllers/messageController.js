@@ -334,16 +334,57 @@ exports.addUserToConversation = (req, res) => {
 };
 
 // Remove a user from a conversation (group chat)
-export const removeUserFromConversation = async (conversationId, userIdToRemove, token) => {
-    const response = await fetch(`${BASE_URL}/removeUserFromConversation`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ conversationId, userIdToRemove })
+exports.removeUserFromConversation = (req, res) => {
+    const { conversationId, userIdToRemove } = req.body;
+
+    // Validate input
+    if (!conversationId || !userIdToRemove) {
+        return res.json({
+            success: false,
+            message: 'Conversation ID and user ID to remove are required.'
+        });
+    }
+
+    // Step 1: Check if the user is part of the conversation
+    const checkUserQuery = `
+        SELECT * FROM ConversationParticipants
+        WHERE ConversationID = ? AND UserID = ?
+    `;
+    db.query(checkUserQuery, [conversationId, userIdToRemove], (err, checkResult) => {
+        if (err) {
+            console.error('Error checking user in conversation:', err);
+            return res.json({
+                success: false,
+                message: 'Database error while checking user in conversation.'
+            });
+        }
+        if (checkResult.length === 0) {
+            return res.json({
+                success: false,
+                message: 'User not found in the conversation.'
+            });
+        }
+
+        // Step 2: Remove the user from the conversation
+        const deleteUserQuery = `
+            DELETE FROM ConversationParticipants
+            WHERE ConversationID = ? AND UserID = ?
+        `;
+        db.query(deleteUserQuery, [conversationId, userIdToRemove], (err, result) => {
+            if (err) {
+                console.error('Error removing user from conversation:', err);
+                return res.json({
+                    success: false,
+                    message: 'Failed to remove user from conversation.'
+                });
+            }
+
+            res.json({
+                success: true,
+                message: 'User removed from conversation successfully.'
+            });
+        });
     });
-    return response.json();
 };
 
 // Get all conversations for the logged-in user
