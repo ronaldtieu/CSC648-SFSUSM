@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useLocation, useHistory } from 'react-router-dom';
-import { getMessages, sendMessage, createConversation, checkExistingConversation } from '../../service/messageService';
-import { searchUsers, checkSession } from '../../service/profileService';
+import { useParams, useHistory } from 'react-router-dom';
+import { getMessages } from '../../service/messageService';
+import { checkSession } from '../../service/profileService';
 import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 import ConversationContainer from '../../components/ConversationContainer/ConversationContainer';
 import { initializeSocket, disconnectSocket } from '../../service/socket'; 
@@ -11,20 +11,13 @@ const Message = ({ currentUser: propUser }) => {
   const { conversationId } = useParams();
   const isNewConversation = conversationId === 'new';
   const history = useHistory();
-  const location = useLocation();
-  const { receiverIds: initialReceiverIds } = location.state || {};
 
   const [currentUser, setCurrentUser] = useState(propUser);
   const [messages, setMessages] = useState([]);
-  const [messageContent, setMessageContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  // States for new conversation branch (recipient search)
-  const [recipientQuery, setRecipientQuery] = useState('');
-  const [recipientSuggestions, setRecipientSuggestions] = useState([]);
-  const [selectedRecipient, setSelectedRecipient] = useState(null);
 
-  // Retrieve current user from session if not passed in
+  // Retrieve current user from session if not provided
   useEffect(() => {
     if (!currentUser) {
       const token = sessionStorage.getItem('accessToken');
@@ -50,7 +43,14 @@ const Message = ({ currentUser: propUser }) => {
     }
   }, [currentUser]);
 
-  // Fetch messages for existing conversations
+  // Redirect to NewConversation page if conversationId indicates a new conversation
+  useEffect(() => {
+    if (isNewConversation) {
+      history.push('/new-conversation');
+    }
+  }, [isNewConversation, history]);
+
+  // Fetch messages for existing conversation
   useEffect(() => {
     if (!isNewConversation && currentUser && currentUser.id) {
       const token = sessionStorage.getItem('accessToken');
@@ -74,66 +74,7 @@ const Message = ({ currentUser: propUser }) => {
     }
   }, [conversationId, currentUser, isNewConversation]);
 
-  // Recipient suggestions for new conversation
-  useEffect(() => {
-    if (isNewConversation && recipientQuery.trim().length > 1 && currentUser && currentUser.id) {
-      searchUsers(recipientQuery, currentUser.id)
-        .then((data) => {
-          if (data.success) {
-            setRecipientSuggestions(data.users);
-          } else {
-            setRecipientSuggestions([]);
-          }
-        })
-        .catch(() => setRecipientSuggestions([]));
-    } else {
-      setRecipientSuggestions([]);
-    }
-  }, [recipientQuery, currentUser, isNewConversation]);
-
-  const handleSelectRecipient = async (user) => {
-    setSelectedRecipient(user);
-    setRecipientQuery(user.email);
-    setRecipientSuggestions([]);
-    if (currentUser && currentUser.id) {
-      try {
-        const existing = await checkExistingConversation([user.id], currentUser.id);
-        if (existing.success && existing.conversationId) {
-          history.push(`/messages/${existing.conversationId}`);
-        }
-      } catch (error) {
-        console.error('Error checking existing conversation:', error);
-      }
-    }
-  };
-
-  const handleStartNewConversation = async () => {
-    if (!messageContent.trim() || !selectedRecipient) return;
-    const token = sessionStorage.getItem('accessToken');
-    try {
-      const existing = await checkExistingConversation([selectedRecipient.id], currentUser.id);
-      if (existing.success && existing.conversationId) {
-        history.push(`/messages/${existing.conversationId}`);
-        return;
-      }
-      const createData = await createConversation([selectedRecipient.id], token);
-      if (createData.success) {
-        const newConversationId = createData.conversationId;
-        const sendData = await sendMessage(newConversationId, messageContent, token);
-        if (sendData.success) {
-          history.push(`/messages/${newConversationId}`);
-        } else {
-          setError(sendData.message || 'Failed to send message in new conversation.');
-        }
-      } else {
-        setError(createData.message || 'Failed to create conversation.');
-      }
-    } catch (err) {
-      setError('An error occurred while creating a new conversation.');
-    }
-  };
-
-  // Initialize WebSocket for existing conversations using our external socket module
+  // Initialize WebSocket for real-time updates on existing conversations
   useEffect(() => {
     if (!isNewConversation && currentUser && currentUser.id) {
       initializeSocket(conversationId, currentUser, (message) => {
@@ -145,7 +86,6 @@ const Message = ({ currentUser: propUser }) => {
           return [...prevMessages, message];
         });
       });
-      // Clean up the socket connection on unmount
       return () => {
         disconnectSocket();
       };
@@ -154,57 +94,18 @@ const Message = ({ currentUser: propUser }) => {
 
   return (
     <div className="message-page">
-      <h1>{isNewConversation ? 'New Conversation' : `Conversation: ${conversationId}`}</h1>
+      <h1>Conversation: {conversationId}</h1>
       {loading ? (
         <LoadingScreen />
       ) : (
-        <div>
-          {isNewConversation ? (
-            <div className="new-conversation">
-              <div className="recipient-input">
-                <label>Recipient:</label>
-                <input
-                  type="text"
-                  value={recipientQuery}
-                  onChange={(e) => {
-                    const inputValue = e.target.value;
-                    setRecipientQuery(inputValue);
-                    setSelectedRecipient(null);
-                  }}
-                  placeholder="Type recipient name or email..."
-                />
-                {recipientSuggestions.length > 0 && (
-                  <ul className="recipient-suggestions">
-                    {recipientSuggestions.map((user) => (
-                      <li key={user.id} onClick={() => handleSelectRecipient(user)}>
-                        {user.firstName} {user.lastName} ({user.email})
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <div className="message-input">
-                <textarea
-                  placeholder="Type your message..."
-                  value={messageContent}
-                  onChange={(e) => setMessageContent(e.target.value)}
-                ></textarea>
-                <button onClick={handleStartNewConversation} disabled={!selectedRecipient}>
-                  Start Conversation
-                </button>
-              </div>
-            </div>
-          ) : (
-            <ConversationContainer
-              conversationId={conversationId}
-              currentUser={currentUser}
-              messages={messages}
-              setMessages={setMessages}
-            />
-          )}
-          {error && <p className="error-message">{error}</p>}
-        </div>
+        <ConversationContainer
+          conversationId={conversationId}
+          currentUser={currentUser}
+          messages={messages}
+          setMessages={setMessages}
+        />
       )}
+      {error && <p className="error-message">{error}</p>}
     </div>
   );
 };
