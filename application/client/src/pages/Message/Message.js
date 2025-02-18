@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useHistory } from 'react-router-dom';
 import { getMessages, sendMessage, createConversation, checkExistingConversation } from '../../service/messageService';
 import { searchUsers, checkSession } from '../../service/profileService';
 import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 import ConversationContainer from '../../components/ConversationContainer/ConversationContainer';
-import io from 'socket.io-client';
+import { initializeSocket, disconnectSocket } from '../../service/socket'; 
 import './Message.css';
 
 const Message = ({ currentUser: propUser }) => {
@@ -24,8 +24,6 @@ const Message = ({ currentUser: propUser }) => {
   const [recipientSuggestions, setRecipientSuggestions] = useState([]);
   const [selectedRecipient, setSelectedRecipient] = useState(null);
 
-  const socketRef = useRef();
-
   // Retrieve current user from session if not passed in
   useEffect(() => {
     if (!currentUser) {
@@ -39,7 +37,9 @@ const Message = ({ currentUser: propUser }) => {
               setError('Failed to retrieve session information.');
             }
           })
-          .catch(() => setError('An error occurred while verifying session information.'))
+          .catch(() =>
+            setError('An error occurred while verifying session information.')
+          )
           .finally(() => setLoading(false));
       } else {
         setError('No session token found.');
@@ -91,27 +91,6 @@ const Message = ({ currentUser: propUser }) => {
     }
   }, [recipientQuery, currentUser, isNewConversation]);
 
-  // Initialize Socket.io for existing conversations
-  useEffect(() => {
-    if (!isNewConversation && currentUser && currentUser.id) {
-      socketRef.current = io('http://localhost:4000', { withCredentials: true });
-      socketRef.current.on('connect', () => {
-        console.log('Socket connected:', socketRef.current.id);
-      });
-      socketRef.current.on('receiveMessage', (message) => {
-        setMessages((prev) => {
-          if (prev.some((m) => m.messageId === message.messageId)) {
-            return prev;
-          }
-          return [...prev, message];
-        });
-      });
-      return () => {
-        socketRef.current.disconnect();
-      };
-    }
-  }, [isNewConversation, currentUser]);
-
   const handleSelectRecipient = async (user) => {
     setSelectedRecipient(user);
     setRecipientQuery(user.email);
@@ -123,7 +102,7 @@ const Message = ({ currentUser: propUser }) => {
           history.push(`/messages/${existing.conversationId}`);
         }
       } catch (error) {
-        console.error("Error checking existing conversation:", error);
+        console.error('Error checking existing conversation:', error);
       }
     }
   };
@@ -153,6 +132,25 @@ const Message = ({ currentUser: propUser }) => {
       setError('An error occurred while creating a new conversation.');
     }
   };
+
+  // Initialize WebSocket for existing conversations using our external socket module
+  useEffect(() => {
+    if (!isNewConversation && currentUser && currentUser.id) {
+      initializeSocket(conversationId, currentUser, (message) => {
+        setMessages((prevMessages) => {
+          // Avoid duplicate messages
+          if (prevMessages.some((m) => m.messageId === message.messageId)) {
+            return prevMessages;
+          }
+          return [...prevMessages, message];
+        });
+      });
+      // Clean up the socket connection on unmount
+      return () => {
+        disconnectSocket();
+      };
+    }
+  }, [conversationId, currentUser, isNewConversation]);
 
   return (
     <div className="message-page">
@@ -202,7 +200,6 @@ const Message = ({ currentUser: propUser }) => {
               currentUser={currentUser}
               messages={messages}
               setMessages={setMessages}
-              socketRef={socketRef}
             />
           )}
           {error && <p className="error-message">{error}</p>}
