@@ -73,15 +73,26 @@ const Participants = ({ conversationId, currentUser }) => {
   // Handle removing a participant
   const handleRemove = async (userId) => {
     const token = sessionStorage.getItem('accessToken');
+    // Find the user details for logging using the correct property name
+    const userToRemove = participants.find((member) => member.userId === userId);
+    if (userToRemove) {
+        console.log(
+            `Removing user: ID ${userId}, Name: ${userToRemove.FirstName} ${userToRemove.LastName}`
+        );
+    } else {
+        console.log(`Removing user with ID ${userId} (user details not found)`);
+    }
+
     try {
-      const data = await removeUserFromConversation(conversationId, userId, token);
-      if (data.success) {
-        setParticipants((prev) => prev.filter((member) => member.ID !== userId));
-      } else {
-        setError(data.message || 'Failed to remove participant.');
-      }
+        const data = await removeUserFromConversation(conversationId, userId, token);
+        if (data.success) {
+            setParticipants((prev) => prev.filter((member) => member.userId !== userId));
+        } else {
+            setError(data.message || 'Failed to remove participant.');
+        }
     } catch (err) {
-      setError('An error occurred while removing participant.');
+        console.error('Error in handleRemove:', err);
+        setError('An error occurred while removing participant.');
     }
   };
 
@@ -115,9 +126,9 @@ const Participants = ({ conversationId, currentUser }) => {
             <h2>Participants</h2>
             <ul className="participants-list">
               {participants.map((member) => (
-                <li key={member.ID}>
+                <li key={member.userId}>
                   {member.FirstName} {member.LastName} ({member.Email})
-                  <button onClick={() => handleRemove(member.ID)}>Remove</button>
+                  <button onClick={() => handleRemove(member.userId)}>Remove</button>
                 </li>
               ))}
             </ul>
