@@ -77,7 +77,7 @@ const Participants = ({ conversationId, currentUser }) => {
     const userToRemove = participants.find((member) => member.userId === userId);
     if (userToRemove) {
         console.log(
-            `Removing user: ID ${userId}, Name: ${userToRemove.FirstName} ${userToRemove.LastName}`
+            // `Removing user: ID ${userId}, Name: ${userToRemove.FirstName} ${userToRemove.LastName}`
         );
     } else {
         console.log(`Removing user with ID ${userId} (user details not found)`);
