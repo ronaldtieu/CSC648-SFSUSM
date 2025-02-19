@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 import { getMessages } from '../../service/messageService';
 import { checkSession } from '../../service/profileService';
@@ -11,6 +11,7 @@ const Message = ({ currentUser: propUser }) => {
   const { conversationId } = useParams();
   const isNewConversation = conversationId === 'new';
   const history = useHistory();
+  const socketRef = useRef(null);  // Create a socket reference
 
   const [currentUser, setCurrentUser] = useState(propUser);
   const [messages, setMessages] = useState([]);
@@ -77,9 +78,8 @@ const Message = ({ currentUser: propUser }) => {
   // Initialize WebSocket for real-time updates on existing conversations
   useEffect(() => {
     if (!isNewConversation && currentUser && currentUser.id) {
-      initializeSocket(conversationId, currentUser, (message) => {
+      socketRef.current = initializeSocket(conversationId, currentUser, (message) => {
         setMessages((prevMessages) => {
-          // Avoid duplicate messages
           if (prevMessages.some((m) => m.messageId === message.messageId)) {
             return prevMessages;
           }
@@ -103,6 +103,7 @@ const Message = ({ currentUser: propUser }) => {
           currentUser={currentUser}
           messages={messages}
           setMessages={setMessages}
+          socketRef={socketRef}  // Pass the socketRef down here
         />
       )}
       {error && <p className="error-message">{error}</p>}

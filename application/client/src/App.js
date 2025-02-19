@@ -58,7 +58,7 @@ const App = () => {
         console.log('Socket connected:', socket.id);
       });
       socket.on('receiveMessage', (message) => {
-        console.log('Socket received message:', message);
+        // console.log('Socket received message:', message);
       });
       return () => {
         socket.disconnect();

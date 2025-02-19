@@ -19,13 +19,13 @@ export const initializeSocket = (conversationId, currentUser, onMessageReceived)
   socket = io('http://localhost:4000', { withCredentials: true });
   
   socket.on('connect', () => {
-    console.log('Socket connected:', socket.id);
+    // console.log('Socket connected:', socket.id);
     // If your server uses room-based logic, join the conversation room.
     socket.emit('joinConversation', { conversationId });
   });
   
   socket.on('receiveMessage', (message) => {
-    console.log('Received message:', message);
+    // console.log('Received message:', message);
     if (typeof onMessageReceived === 'function') {
       onMessageReceived(message);
     }
