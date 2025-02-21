@@ -158,8 +158,8 @@ exports.logoutUser = (req, res) => {
 
 // Verify Token Middleware from Cookies
 exports.verifyToken = (req, res, next) => {
-    // Extract the token from the cookies 
-    let token = req.cookies.token;
+    // Try to get token from cookies first, then from the Authorization header
+    let token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
 
     if (!token) {
         req.sessionStatus = {

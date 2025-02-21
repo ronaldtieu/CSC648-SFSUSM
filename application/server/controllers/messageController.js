@@ -3,10 +3,16 @@ require('dotenv').config();
 
 // Create a new conversation between users
 exports.createConversation = (req, res) => {
+    console.log("createConversation invoked.");
+    console.log("Sender ID from req.userId:", req.userId);
+    console.log("Receiver IDs from req.body:", req.body.receiverIds);
+
     const senderId = req.userId;
     const { receiverIds } = req.body;
 
+    // Validate receiverIds presence and format
     if (!receiverIds || !Array.isArray(receiverIds) || receiverIds.length === 0) {
+        console.error("Validation failed: No receiver IDs provided or invalid format.");
         return res.json({
             success: false,
             message: 'At least one receiver ID is required to create a conversation.',
@@ -14,9 +20,18 @@ exports.createConversation = (req, res) => {
     }
 
     const participants = [senderId, ...receiverIds];
+    console.log("Constructed participants array:", participants);
 
-    // Check the participant limit (10 users max)
+    // Check if any participant is null or undefined
+    participants.forEach((id, index) => {
+        if (id == null) {
+            console.error(`Validation failed: Participant at index ${index} is null or undefined.`);
+        }
+    });
+
+    // Validate participant limit
     if (participants.length > 10) {
+        console.error("Validation failed: Too many participants. Count:", participants.length);
         return res.json({
             success: false,
             message: 'A conversation can have a maximum of 10 users.',
@@ -38,54 +53,62 @@ exports.createConversation = (req, res) => {
         HAVING COUNT(cp.UserID) = ?;
     `;
 
+    console.log("Running existing conversation query with participants:", participants);
     db.query(existingConversationQuery, [participants, participants.length, participants.length], (err, results) => {
         if (err) {
-            console.error('Error checking for existing conversation:', err);
+            console.error("Error during existing conversation query:", err);
+            // Failure point: existing conversation query failed
             return res.json({
                 success: false,
-                message: 'Error checking for existing conversation.',
+                message: 'Oops, something went wrong while checking for an existing conversation. (Error during query execution)',
             });
         }
 
         if (results.length > 0) {
-            // If a conversation exists, return its ID
+            console.log("Existing conversation found with ID:", results[0].ConversationID);
             return res.json({
                 success: true,
-                message: 'Conversation already exists.',
+                message: 'A conversation with these participants already exists.',
                 conversationId: results[0].ConversationID,
             });
         }
 
+        console.log("No existing conversation found. Proceeding to create a new conversation.");
         const createConversationQuery = `INSERT INTO Conversations () VALUES ()`;
 
         db.query(createConversationQuery, (err, result) => {
             if (err) {
-                console.error('Error creating conversation:', err);
+                console.error("Error while creating conversation:", err);
+                // Failure point: creating conversation record failed
                 return res.json({
                     success: false,
-                    message: 'Failed to create conversation.',
+                    message: 'We encountered an error while creating your conversation. (Error creating conversation record)',
                 });
             }
 
             const conversationId = result.insertId;
+            console.log("New conversation record created with ID:", conversationId);
 
             const addParticipantsQuery = `
                 INSERT INTO ConversationParticipants (ConversationID, UserID) VALUES ?
             `;
             const participantValues = participants.map(userId => [conversationId, userId]);
 
+            console.log("Attempting to add participants. Participant values:", participantValues);
             db.query(addParticipantsQuery, [participantValues], (err) => {
                 if (err) {
-                    console.error('Error adding participants:', err);
+                    console.error("Error while adding participants:", err);
+                    // Failure point: inserting participants failed
                     return res.json({
                         success: false,
-                        message: 'Failed to add participants to conversation.',
+                        message: 'We could not add all participants to the conversation. (Error adding participants to conversation)',
                     });
                 }
 
+                console.log("Participants added successfully to conversation ID:", conversationId);
                 res.json({
                     success: true,
-                    message: 'Conversation created successfully with participants.',
+                    message: 'Your conversation has been created successfully with the selected participants.',
                     conversationId,
                 });
             });
