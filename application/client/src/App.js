@@ -24,6 +24,8 @@ import EditClub from './pages/Club/EditClub';
 import HashtagPage from './pages/HashtagPage/HashtagPage';
 import Search from './pages/Search/Search'; 
 import Message from './pages/Message/Message'; 
+import NewConversation from './pages/Message/NewConversation'; 
+
 
 import './App.css';
 
@@ -82,7 +84,7 @@ const App = () => {
         </Route>
         <ProtectedRoute path="/home" component={Home} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/profile" component={Profile} isLoggedIn={isLoggedIn} /> 
-        <ProtectedRoute path="/messages/new" component={Message} isLoggedIn={isLoggedIn} />
+        <ProtectedRoute path="/messages/new" component={NewConversation} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/messages/:conversationId" component={Message} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/view-profile" component={ViewProfile} isLoggedIn={isLoggedIn} />
         <ProtectedRoute path="/edit-profile" component={EditProfile} isLoggedIn={isLoggedIn} />
