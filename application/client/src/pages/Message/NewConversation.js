@@ -32,15 +32,21 @@ const NewConversation = () => {
     });
   };
 
+  // Remove a user from the selected list
+  const handleRemoveUser = (userId) => {
+    setSelectedUsers(prev => prev.filter(user => user.ID !== userId));
+  };
+
   // Create a conversation with the selected users
   const handleCreateConversation = async () => {
     if (selectedUsers.length === 0) return;
-    const receiverIds = selectedUsers.map(user => user.ID);
+    // Use a Set to ensure receiver IDs are unique
+    const receiverIds = Array.from(new Set(selectedUsers.map(user => user.ID)));
 
     // Log the inputs being used for the conversation creation
     console.log('Creating conversation with the following inputs:');
     console.log('Token (for user authentication):', token);
-    console.log('Receiver IDs:', receiverIds);
+    console.log('Unique Receiver IDs:', receiverIds);
     console.log('Selected Users:', selectedUsers);
 
     try {
@@ -83,6 +89,7 @@ const NewConversation = () => {
             {selectedUsers.map((user) => (
               <li key={user.ID}>
                 {user.FirstName} {user.LastName}
+                <button onClick={() => handleRemoveUser(user.ID)}>x</button>
               </li>
             ))}
           </ul>

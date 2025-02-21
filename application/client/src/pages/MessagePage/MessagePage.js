@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
-import { getAllConversations } from '../../service/messageService';
+import { getAllConversations, deleteConversation } from '../../service/messageService';
 import { checkSession } from '../../service/profileService'; 
 import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 import './MessagePage.css';
@@ -13,6 +13,8 @@ const MessagesPage = ({ token, initialConversations, userId: initialUserId }) =>
   const [conversations, setConversations] = useState(initialConversations || []);
   const [loading, setLoading] = useState(!initialConversations || !initialUserId);
   const [error, setError] = useState('');
+  // Holds the conversationId for which delete confirmation is active.
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   // Use checkSession to get user info (and userId) if not already provided
   useEffect(() => {
@@ -62,12 +64,12 @@ const MessagesPage = ({ token, initialConversations, userId: initialUserId }) =>
 
   // Handler for clicking an existing conversation.
   const handleConversationClick = (conversation) => {
-    // Log the conversation's participants.
+    // Don't navigate if the delete confirmation is active.
+    if (confirmDeleteId === conversation.conversationId) return;
+
     console.log("Conversation Participants:", conversation.participants);
-    // Log the current user ID.
     console.log("Current User ID:", userId);
 
-    // Check if the current user is among the conversation participants.
     const isParticipant = conversation.participants.some(
       (p) => p.participantId === userId
     );
@@ -83,6 +85,37 @@ const MessagesPage = ({ token, initialConversations, userId: initialUserId }) =>
   // Handler for starting a new conversation.
   const handleStartNewConversation = () => {
     history.push('/messages/new');
+  };
+
+  // Handler for confirming deletion of a conversation.
+  const handleConfirmDelete = async (conversationId, e) => {
+    e.stopPropagation();
+    try {
+      const response = await deleteConversation(conversationId, tokenToUse);
+      if (response.success) {
+        console.log('Conversation deleted successfully');
+        alert('Conversation deleted successfully');
+        setConversations(prev =>
+          prev.filter(c => c.conversationId !== conversationId)
+        );
+      } else {
+        console.error('Error deleting conversation:', response.message);
+      }
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+    }
+    setConfirmDeleteId(null);
+  };
+
+  // Handler for right-clicking a conversation to toggle inline delete confirmation.
+  const handleContextMenu = (e, conversationId) => {
+    e.preventDefault();
+    // Toggle the confirmation prompt off if already active for the same conversation.
+    if (confirmDeleteId === conversationId) {
+      setConfirmDeleteId(null);
+    } else {
+      setConfirmDeleteId(conversationId);
+    }
   };
 
   return (
@@ -109,21 +142,32 @@ const MessagesPage = ({ token, initialConversations, userId: initialUserId }) =>
                 <li 
                   key={conversation.conversationId} 
                   className="message-item"
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer', position: 'relative' }}
                   onClick={() => handleConversationClick(conversation)}
+                  onContextMenu={(e) => handleContextMenu(e, conversation.conversationId)}
                 >
-                  <div>
-                    <strong>Conversation ID:</strong> {conversation.conversationId}
-                  </div>
-                  <div>
-                    <strong>Created At:</strong> {conversation.createdAt}
-                  </div>
-                  <div>
-                    <strong>Participants:</strong>{' '}
-                    {conversation.participants
-                      .map((p) => `${p.FirstName} ${p.LastName}`)
-                      .join(', ')}
-                  </div>
+                  {confirmDeleteId === conversation.conversationId ? (
+                    <div className="delete-confirmation" style={{ background: '#ffe6e6', padding: '10px' }}>
+                      <p>Are you sure you want to delete this conversation?</p>
+                      <button onClick={(e) => handleConfirmDelete(conversation.conversationId, e)}>Yes</button>
+                      <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }}>Cancel</button>
+                    </div>
+                  ) : (
+                    <>
+                      <div>
+                        <strong>Conversation ID:</strong> {conversation.conversationId}
+                      </div>
+                      <div>
+                        <strong>Created At:</strong> {conversation.createdAt}
+                      </div>
+                      <div>
+                        <strong>Participants:</strong>{' '}
+                        {conversation.participants
+                          .map((p) => `${p.FirstName} ${p.LastName}`)
+                          .join(', ')}
+                      </div>
+                    </>
+                  )}
                 </li>
               ))}
             </ul>

@@ -3,10 +3,6 @@ require('dotenv').config();
 
 // Create a new conversation between users
 exports.createConversation = (req, res) => {
-    console.log("createConversation invoked.");
-    console.log("Sender ID from req.userId:", req.userId);
-    console.log("Receiver IDs from req.body:", req.body.receiverIds);
-
     const senderId = req.userId;
     const { receiverIds } = req.body;
 
@@ -19,7 +15,11 @@ exports.createConversation = (req, res) => {
         });
     }
 
-    const participants = [senderId, ...receiverIds];
+    // Remove duplicates from receiverIds and filter out senderId if present
+    const uniqueReceiverIds = Array.from(new Set(receiverIds)).filter(id => id !== senderId);
+
+    // Construct participants array ensuring uniqueness (sender plus receivers)
+    const participants = Array.from(new Set([senderId, ...uniqueReceiverIds]));
     console.log("Constructed participants array:", participants);
 
     // Check if any participant is null or undefined
@@ -38,6 +38,7 @@ exports.createConversation = (req, res) => {
         });
     }
 
+    // Check for an existing conversation with the exact same participants
     const existingConversationQuery = `
         SELECT cp.ConversationID
         FROM ConversationParticipants cp
@@ -57,7 +58,6 @@ exports.createConversation = (req, res) => {
     db.query(existingConversationQuery, [participants, participants.length, participants.length], (err, results) => {
         if (err) {
             console.error("Error during existing conversation query:", err);
-            // Failure point: existing conversation query failed
             return res.json({
                 success: false,
                 message: 'Oops, something went wrong while checking for an existing conversation. (Error during query execution)',
@@ -79,7 +79,6 @@ exports.createConversation = (req, res) => {
         db.query(createConversationQuery, (err, result) => {
             if (err) {
                 console.error("Error while creating conversation:", err);
-                // Failure point: creating conversation record failed
                 return res.json({
                     success: false,
                     message: 'We encountered an error while creating your conversation. (Error creating conversation record)',
@@ -98,7 +97,6 @@ exports.createConversation = (req, res) => {
             db.query(addParticipantsQuery, [participantValues], (err) => {
                 if (err) {
                     console.error("Error while adding participants:", err);
-                    // Failure point: inserting participants failed
                     return res.json({
                         success: false,
                         message: 'We could not add all participants to the conversation. (Error adding participants to conversation)',
