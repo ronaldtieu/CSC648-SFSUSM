@@ -158,8 +158,8 @@ exports.logoutUser = (req, res) => {
 
 // Verify Token Middleware from Cookies
 exports.verifyToken = (req, res, next) => {
-    // Extract the token from the cookies 
-    let token = req.cookies.token;
+    // Try to get token from cookies first, then from the Authorization header
+    let token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
 
     if (!token) {
         req.sessionStatus = {
@@ -266,7 +266,7 @@ exports.getUserInfo = (req, res) => {
         });
       });
     });
-  };
+};
 
 // Edit user profile
 exports.editUserProfile = async (req, res, next) => {
@@ -479,3 +479,39 @@ exports.getUserById = (req, res) => {
       });
     });
 };
+
+exports.searchUsers = (req, res) => {
+    const searchQuery = req.query.q;
+    
+    if (!searchQuery) {
+      return res.json({
+        success: false,
+        message: 'No search query provided.'
+      });
+    }
+    
+    const sql = `
+      SELECT ID, FirstName, LastName, Email 
+      FROM Users 
+      WHERE CONCAT(FirstName, ' ', LastName) LIKE ? OR Email LIKE ?
+      ORDER BY FirstName ASC
+      LIMIT 10
+    `;
+    
+    const likeQuery = `%${searchQuery}%`;
+    
+    db.query(sql, [likeQuery, likeQuery], (err, results) => {
+      if (err) {
+        console.error('Error searching users:', err);
+        return res.json({
+          success: false,
+          message: 'An error occurred while searching for users.'
+        });
+      }
+      
+      res.json({
+        success: true,
+        users: results
+      });
+    });
+  };

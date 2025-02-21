@@ -1,4 +1,3 @@
-
 const API_BASE_URL = 'http://localhost:4000/users';
 
 
@@ -199,7 +198,7 @@ export const fetchUserById = async (id) => {
     // Return the full user object as it was received
     // console.log('Returning full user object:', data.user);
     return data.user;
-  };
+};
 
 export const registerUser = async (registrationData) => {
     try {
@@ -225,3 +224,15 @@ export const registerUser = async (registrationData) => {
       throw error;
     }
 };
+
+export const searchUsers = async (query, token) => {
+    const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include'
+    });
+    return response.json();
+  };

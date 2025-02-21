@@ -6,23 +6,39 @@ exports.createConversation = (req, res) => {
     const senderId = req.userId;
     const { receiverIds } = req.body;
 
+    // Validate receiverIds presence and format
     if (!receiverIds || !Array.isArray(receiverIds) || receiverIds.length === 0) {
+        console.error("Validation failed: No receiver IDs provided or invalid format.");
         return res.json({
             success: false,
             message: 'At least one receiver ID is required to create a conversation.',
         });
     }
 
-    const participants = [senderId, ...receiverIds];
+    // Remove duplicates from receiverIds and filter out senderId if present
+    const uniqueReceiverIds = Array.from(new Set(receiverIds)).filter(id => id !== senderId);
 
-    // Check the participant limit (10 users max)
+    // Construct participants array ensuring uniqueness (sender plus receivers)
+    const participants = Array.from(new Set([senderId, ...uniqueReceiverIds]));
+    console.log("Constructed participants array:", participants);
+
+    // Check if any participant is null or undefined
+    participants.forEach((id, index) => {
+        if (id == null) {
+            console.error(`Validation failed: Participant at index ${index} is null or undefined.`);
+        }
+    });
+
+    // Validate participant limit
     if (participants.length > 10) {
+        console.error("Validation failed: Too many participants. Count:", participants.length);
         return res.json({
             success: false,
             message: 'A conversation can have a maximum of 10 users.',
         });
     }
 
+    // Check for an existing conversation with the exact same participants
     const existingConversationQuery = `
         SELECT cp.ConversationID
         FROM ConversationParticipants cp
@@ -38,54 +54,59 @@ exports.createConversation = (req, res) => {
         HAVING COUNT(cp.UserID) = ?;
     `;
 
+    console.log("Running existing conversation query with participants:", participants);
     db.query(existingConversationQuery, [participants, participants.length, participants.length], (err, results) => {
         if (err) {
-            console.error('Error checking for existing conversation:', err);
+            console.error("Error during existing conversation query:", err);
             return res.json({
                 success: false,
-                message: 'Error checking for existing conversation.',
+                message: 'Oops, something went wrong while checking for an existing conversation. (Error during query execution)',
             });
         }
 
         if (results.length > 0) {
-            // If a conversation exists, return its ID
+            console.log("Existing conversation found with ID:", results[0].ConversationID);
             return res.json({
                 success: true,
-                message: 'Conversation already exists.',
+                message: 'A conversation with these participants already exists.',
                 conversationId: results[0].ConversationID,
             });
         }
 
+        console.log("No existing conversation found. Proceeding to create a new conversation.");
         const createConversationQuery = `INSERT INTO Conversations () VALUES ()`;
 
         db.query(createConversationQuery, (err, result) => {
             if (err) {
-                console.error('Error creating conversation:', err);
+                console.error("Error while creating conversation:", err);
                 return res.json({
                     success: false,
-                    message: 'Failed to create conversation.',
+                    message: 'We encountered an error while creating your conversation. (Error creating conversation record)',
                 });
             }
 
             const conversationId = result.insertId;
+            console.log("New conversation record created with ID:", conversationId);
 
             const addParticipantsQuery = `
                 INSERT INTO ConversationParticipants (ConversationID, UserID) VALUES ?
             `;
             const participantValues = participants.map(userId => [conversationId, userId]);
 
+            console.log("Attempting to add participants. Participant values:", participantValues);
             db.query(addParticipantsQuery, [participantValues], (err) => {
                 if (err) {
-                    console.error('Error adding participants:', err);
+                    console.error("Error while adding participants:", err);
                     return res.json({
                         success: false,
-                        message: 'Failed to add participants to conversation.',
+                        message: 'We could not add all participants to the conversation. (Error adding participants to conversation)',
                     });
                 }
 
+                console.log("Participants added successfully to conversation ID:", conversationId);
                 res.json({
                     success: true,
-                    message: 'Conversation created successfully with participants.',
+                    message: 'Your conversation has been created successfully with the selected participants.',
                     conversationId,
                 });
             });
@@ -128,10 +149,13 @@ exports.sendMessage = (req, res) => {
     });
 };
 
-// Retrieve messages from a specific conversation
 exports.getMessages = (req, res) => {
-    const userId = req.userId;
+    const userId = req.userId; 
     const { conversationId } = req.params;
+
+    console.log("getMessages endpoint called with:");
+    console.log("req.userId:", userId);
+    console.log("Conversation ID:", conversationId);
 
     const checkParticipantQuery = `
         SELECT COUNT(*) AS isParticipant
@@ -148,7 +172,9 @@ exports.getMessages = (req, res) => {
             });
         }
 
+        console.log("Query result for participant check:", participantResult);
         if (participantResult[0].isParticipant === 0) {
+            console.error(`Access denied for user ${userId} on conversation ${conversationId}`);
             return res.json({
                 success: false,
                 message: 'Access denied. You are not a participant in this conversation.',
@@ -332,48 +358,51 @@ exports.addUserToConversation = (req, res) => {
 exports.removeUserFromConversation = (req, res) => {
     const { conversationId, userIdToRemove } = req.body;
 
-    // console.log('This is the conversation ID : ', conversationId);
-    // console.log("This is the user to be removed: ", userIdToRemove);
+    // Validate input
+    if (!conversationId || !userIdToRemove) {
+        return res.json({
+            success: false,
+            message: 'Conversation ID and user ID to remove are required.'
+        });
+    }
 
-
+    // Step 1: Check if the user is part of the conversation
     const checkUserQuery = `
         SELECT * FROM ConversationParticipants
         WHERE ConversationID = ? AND UserID = ?
     `;
-
     db.query(checkUserQuery, [conversationId, userIdToRemove], (err, checkResult) => {
         if (err) {
             console.error('Error checking user in conversation:', err);
             return res.json({
                 success: false,
-                message: 'Database error while checking user in conversation.',
+                message: 'Database error while checking user in conversation.'
             });
         }
-
         if (checkResult.length === 0) {
             return res.json({
                 success: false,
-                message: 'User not found in the conversation.',
+                message: 'User not found in the conversation.'
             });
         }
 
+        // Step 2: Remove the user from the conversation
         const deleteUserQuery = `
             DELETE FROM ConversationParticipants
             WHERE ConversationID = ? AND UserID = ?
         `;
-
         db.query(deleteUserQuery, [conversationId, userIdToRemove], (err, result) => {
             if (err) {
                 console.error('Error removing user from conversation:', err);
                 return res.json({
                     success: false,
-                    message: 'Failed to remove user from conversation.',
+                    message: 'Failed to remove user from conversation.'
                 });
             }
 
             res.json({
                 success: true,
-                message: 'User removed from the conversation successfully.',
+                message: 'User removed from conversation successfully.'
             });
         });
     });
@@ -439,36 +468,96 @@ exports.getAllConversations = (req, res) => {
     });
 };
 
-// get ALL members from convo
+// get ALL members from convo and check if current is a participant
 exports.getConversationMembers = (req, res) => {
     const { conversationId } = req.params;
-
-    if (!conversationId) {
-        return res.json({
-            success: false,
-            message: 'Conversation ID is required.',
-        });
+    const currentUserId = req.userId;
+  
+    if (!conversationId || !currentUserId) {
+      return res.json({
+        success: false,
+        message: 'Conversation ID and User ID are required.',
+      });
     }
-
+  
     const query = `
-        SELECT Users.ID AS userId, Users.FirstName, Users.LastName
-        FROM ConversationParticipants
-        JOIN Users ON ConversationParticipants.UserID = Users.ID
-        WHERE ConversationParticipants.ConversationID = ?
+      SELECT Users.ID AS userId, Users.FirstName, Users.LastName
+      FROM ConversationParticipants
+      JOIN Users ON ConversationParticipants.UserID = Users.ID
+      WHERE ConversationParticipants.ConversationID = ?
     `;
-
+  
     db.query(query, [conversationId], (err, results) => {
-        if (err) {
-            console.error('Error retrieving conversation members:', err);
-            return res.json({
-                success: false,
-                message: 'Failed to retrieve conversation members.',
-            });
-        }
-
-        res.json({
-            success: true,
-            members: results,
+      if (err) {
+        console.error('Error retrieving conversation members:', err);
+        return res.json({
+          success: false,
+          message: 'Failed to retrieve conversation members.',
         });
+      }
+  
+      const isParticipant = results.some(member => member.userId === currentUserId);
+  
+      if (!isParticipant) {
+        return res.json({
+          success: false,
+          message: 'Access denied. You are not a participant in this conversation.',
+        });
+      }
+  
+      return res.json({
+        success: true,
+        members: results,
+        currentUserId,
+        isParticipant, // This will be true at this point
+      });
+    });
+};
+
+exports.checkExistingConversation = (req, res) => {
+    const senderId = req.userId;
+    const { receiverIds } = req.body;
+    if (!receiverIds || !Array.isArray(receiverIds) || receiverIds.length === 0) {
+      return res.json({
+        success: false,
+        message: 'At least one receiver ID is required to check conversation.'
+      });
+    }
+    const participants = [senderId, ...receiverIds];
+    
+    const existingConversationQuery = `
+      SELECT cp.ConversationID
+      FROM ConversationParticipants cp
+      JOIN (
+        SELECT ConversationID
+        FROM ConversationParticipants
+        WHERE UserID IN (?)
+        GROUP BY ConversationID
+        HAVING COUNT(UserID) = ?
+      ) AS groupedConversations
+      ON cp.ConversationID = groupedConversations.ConversationID
+      GROUP BY cp.ConversationID
+      HAVING COUNT(cp.UserID) = ?;
+    `;
+    
+    db.query(existingConversationQuery, [participants, participants.length, participants.length], (err, results) => {
+      if (err) {
+        console.error('Error checking for existing conversation:', err);
+        return res.json({
+          success: false,
+          message: 'Error checking for existing conversation.'
+        });
+      }
+      if (results.length > 0) {
+        return res.json({
+          success: true,
+          conversationId: results[0].ConversationID
+        });
+      } else {
+        return res.json({
+          success: false,
+          message: 'No conversation found.'
+        });
+      }
     });
 };

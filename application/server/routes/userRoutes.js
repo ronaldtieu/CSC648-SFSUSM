@@ -57,5 +57,9 @@ router.get('/allUsers', userController.getAllUsers);
 // Get a full profile data for a specific user id
 router.get('/profile/:id', userController.getUserById);
 
+// search for a user
+router.get('/search', userController.searchUsers);
+
+
 
 module.exports = router;

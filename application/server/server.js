@@ -25,6 +25,30 @@ app.use(cors({
 
 app.use(cookieParser()); // Use cookie-parser middleware
 
+
+const http = require('http');
+const server = http.createServer(app);
+const socketIo = require('socket.io');
+const io = socketIo(server, {
+    cors: {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
+});
+
+io.on('connection', (socket) => { 
+    console.log('New client connected:', socket.id); 
+    socket.on('sendMessage', (message) => { 
+      io.emit('receiveMessage', message); 
+    }); 
+    socket.on('disconnect', () => { 
+      console.log('Client disconnected:', socket.id); 
+    }); 
+  }); 
+
+
+
 // routes:
 app.use('/users', userRoutes);
 app.use('/posts', postRoutes);
@@ -36,6 +60,6 @@ app.use('/search', searchRoute);
 
 
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+server.listen(port, () => { 
+    console.log(`Server is running on http://localhost:${port}`); 
 });
