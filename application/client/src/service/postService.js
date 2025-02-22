@@ -1,28 +1,28 @@
 const API_BASE_URL = 'http://localhost:4000/posts';
 
 
-export const fetchUserPosts = async () => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/getUserPosts`, {
-            method: 'GET',
-            credentials: 'include',
-        });
+export const fetchUserPosts = async (page = 1, pageSize = 10) => {
+  try {
+      const response = await fetch(`${API_BASE_URL}/getUserPosts?page=${page}&pageSize=${pageSize}`, {
+          method: 'GET',
+          credentials: 'include',
+      });
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch user posts. Status: ${response.status}`);
-        }
+      if (!response.ok) {
+          throw new Error(`Failed to fetch user posts. Status: ${response.status}`);
+      }
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!data.success) {
-            throw new Error('Failed to fetch user posts.');
-        }
+      if (!data.success) {
+          throw new Error('Failed to fetch user posts.');
+      }
 
-        return data.posts; // Includes UserID now
-    } catch (error) {
-        console.error('Error fetching user posts:', error.message);
-        throw error;
-    }
+      return data.posts;
+  } catch (error) {
+      console.error('Error fetching user posts:', error.message);
+      throw error;
+  }
 };
 
 

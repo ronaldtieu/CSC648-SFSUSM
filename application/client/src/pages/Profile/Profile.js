@@ -9,37 +9,66 @@ import LoadingScreen from '../../components/LoadingScreen/LoadingScreen';
 
 const Profile = () => {
     const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [userId, setUserId] = useState(null);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const pageSize = 10;
 
+    // Load session data to set the user ID.
     useEffect(() => {
-        const loadSessionData = async () => {
+        async function loadSessionData() {
             try {
                 const sessionData = await checkSession();
                 if (sessionData?.user?.id) {
                     setUserId(sessionData.user.id);
                 } else {
                     console.error("No user ID found in session.");
-                    setLoading(false);
                 }
             } catch (error) {
                 console.error("Failed to check session:", error);
-                setLoading(false);
             }
-        };
+        }
         loadSessionData();
     }, []);
 
+    // Fetch posts whenever userId or page changes.
     useEffect(() => {
         if (userId) {
-            loadUserPosts();
+            async function loadPosts() {
+                setLoading(true);
+                try {
+                    // Pass page and pageSize so that only a subset of posts is returned.
+                    const postsData = await fetchUserPosts(page, pageSize);
+                    const updatedPosts = await Promise.all(
+                        postsData.map(async (post) => {
+                            const { likes, totalLikes } = await getPostLikes(post.ID);
+                            return { ...post, likes, totalLikes };
+                        })
+                    );
+                    setPosts(prevPosts => [...prevPosts, ...updatedPosts]);
+                    // If fewer posts than pageSize are returned, assume there are no more posts.
+                    if (postsData.length < pageSize) {
+                        setHasMore(false);
+                    }
+                } catch (error) {
+                    console.error('Error fetching posts:', error);
+                } finally {
+                    setLoading(false);
+                }
+            }
+            loadPosts();
         }
-    }, [userId]);
+    }, [userId, page]);
 
-    const loadUserPosts = async () => {
+    // Refresh posts when a new post is created.
+    const refreshPosts = async () => {
+        setPosts([]);
+        setPage(1);
+        setHasMore(true);
         setLoading(true);
         try {
-            const postsData = await fetchUserPosts();
+            const postsData = await fetchUserPosts(1, pageSize);
             const updatedPosts = await Promise.all(
                 postsData.map(async (post) => {
                     const { likes, totalLikes } = await getPostLikes(post.ID);
@@ -47,27 +76,31 @@ const Profile = () => {
                 })
             );
             setPosts(updatedPosts);
+            if (postsData.length < pageSize) {
+                setHasMore(false);
+            }
         } catch (error) {
-            console.error('Error fetching posts:', error);
+            console.error('Error refreshing posts:', error);
         } finally {
             setLoading(false);
         }
     };
 
+    // Increments the page so that the next set of posts are loaded.
+    const loadMorePosts = () => {
+        setPage(prevPage => prevPage + 1);
+    };
+
     return (
         <div className="profile">
             <h1>My Profile</h1>
-
             <Link to="/view-profile" className="view-profile-button">
                 View Profile
             </Link>
-
             <section className="post-section">
-                <CreatePost onCreate={loadUserPosts} />
+                <CreatePost onCreate={refreshPosts} />
             </section>
-
-            {/* Loading Screen */}
-            {loading ? (
+            {loading && posts.length === 0 ? (
                 <div className="loading-container">
                     <LoadingScreen />
                 </div>
@@ -82,6 +115,15 @@ const Profile = () => {
                     )}
                 </div>
             )}
+            {/* "Load More Posts" button */}
+            <div className="load-more-container">
+                {hasMore && !loading && (
+                    <button onClick={loadMorePosts} className="load-more-button">
+                        Load More Posts
+                    </button>
+                )}
+                {loading && posts.length > 0 && <LoadingScreen />}
+            </div>
         </div>
     );
 };

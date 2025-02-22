@@ -127,10 +127,14 @@ exports.createPost = (req, res) => {
 // Get all user's post 
 exports.getUserPosts = (req, res) => {
     const userId = req.userId;
-
     if (!userId) {
         return res.json({ success: false, message: 'Error with userId' });
     }
+
+    // Use query parameters for pagination; default to page 1 with 10 posts per page.
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
 
     const query = `
         SELECT 
@@ -150,27 +154,22 @@ exports.getUserPosts = (req, res) => {
         WHERE p.UserID = ?
         GROUP BY p.ID
         ORDER BY p.CreatedAt DESC
+        LIMIT ? OFFSET ?
     `;
 
-    db.query(query, [userId], (err, results) => {
+    db.query(query, [userId, pageSize, offset], (err, results) => {
         if (err) {
             console.error('Error with user post query: ', err);
             return res.json({ success: false, message: 'Failed to retrieve posts.' });
         }
 
         // Convert the GROUP_CONCAT result into an array.
-        // If no hashtags are found (i.e., the field is null), assign an empty array.
         const posts = results.map(post => {
-            // If no hashtags exist, the field will be null
-            if (post.hashtags) {
-                post.hashtags = post.hashtags.split(',');
-            } else {
-                post.hashtags = [];
-            }
+            post.hashtags = post.hashtags ? post.hashtags.split(',') : [];
             return post;
         });
 
-        res.json({ success: true, posts: posts });
+        res.json({ success: true, posts });
     });
 };
 
